@@ -1,15 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import { Camera } from './Component';
+
+import { Col, Row } from 'react-bootstrap';
+import "bootstrap/dist/css/bootstrap.min.css";
+import 'jquery/dist/jquery.min.js'
+import "bootstrap/dist/js/bootstrap.js";
+
+import { Menu, Camera, FishInformation } from './Component';
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 root.render(
-  <React.StrictMode>
-    Application Aquarium
+  <React.StrictMode>    
+    {/* PARTIE 1 */}
+    <Menu/>
+
+    {/* PARTIE 2: Caméra */}
     <Camera/>
+
+    {/* PARTIE 3: Informations poisson */}
+    <FishInformation/>
+
   </React.StrictMode>
 );
 
