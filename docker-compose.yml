@@ -1,0 +1,6 @@
+version: '3.3'
+services:
+    analyze-fish:
+        build: .
+        volumes:
+            - '$PWD:/usr/src/myapp'
