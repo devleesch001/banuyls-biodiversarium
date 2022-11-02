@@ -3,4 +3,6 @@ services:
     analyze-fish:
         build: .
         volumes:
-            - '$PWD:/usr/src/myapp'
+            - ./:/usr/src/app
+        ports:
+            - "5000:5000"
