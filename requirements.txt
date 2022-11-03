@@ -1,2 +1,5 @@
 fastapi[all]~=0.85.2
 uvicorn~=0.18.3
+torch~=1.13.0
+PyYAML~=6.0
+requests~=2.28.1
