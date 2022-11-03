@@ -1,19 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import DrawerAppBar from './Appbar';
 
+import "bootstrap/dist/css/bootstrap.min.css";
+import 'jquery/dist/jquery.min.js'
+import "bootstrap/dist/js/bootstrap.js";
 
-
+import { Menu, Camera, FishInformation } from './Component';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 root.render(
+  <React.StrictMode>    
+    {/* PARTIE 1 */}
+    <Menu/>
 
-  <React.StrictMode>
-    <DrawerAppBar></DrawerAppBar>
+    {/* PARTIE 2: Caméra */}
+    <Camera/>
+
+    {/* PARTIE 3: Informations poisson */}
+    <FishInformation/>
+
   </React.StrictMode>
 );
 
