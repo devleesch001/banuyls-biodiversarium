@@ -2,15 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-<<<<<<< HEAD
-=======
 import { Col, Row } from 'react-bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'jquery/dist/jquery.min.js'
 import "bootstrap/dist/js/bootstrap.js";
 
 import { Menu, Camera, FishInformation } from './Component';
->>>>>>> refs/remotes/origin/main
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
