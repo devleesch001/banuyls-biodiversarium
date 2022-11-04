@@ -27,7 +27,7 @@ const  DrawerAppBar : React.FC<AppbarProps> = React.memo(({window})  => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar component="nav">
+      <AppBar component="nav" position = 'sticky'>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -43,7 +43,7 @@ const  DrawerAppBar : React.FC<AppbarProps> = React.memo(({window})  => {
             component="div"
             sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
           >
-           <img src={require('../Assets/Logo-Biodiversarium.png')} alt="No Found" />
+           <img src={require('../Assets/Logo-Biodiversarium.png')} alt="Logo" />
 
           </Typography>
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>

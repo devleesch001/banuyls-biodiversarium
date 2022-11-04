@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'jquery/dist/jquery.min.js'
 import "bootstrap/dist/js/bootstrap.js";
@@ -17,7 +16,7 @@ root.render(
   <React.StrictMode>    
     {/* PARTIE 1 */}
     <Appbar/>
-
+    
     {/* PARTIE 2: Caméra */}
     <Camera/>
 
