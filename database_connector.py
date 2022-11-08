@@ -9,6 +9,10 @@ class DatabaseConnector(abc.ABC):
         pass
 
     @abc.abstractclassmethod
+    def send(self, query):
+        pass
+
+    @abc.abstractclassmethod
     def createTable(self, table_name, table_spec):
         pass
 
@@ -22,6 +26,10 @@ class DatabaseConnector(abc.ABC):
 
     @abc.abstractclassmethod
     def delete(self, table_name, id):
+        pass
+
+    @abc.abstractclassmethod
+    def exists(self, table_name):
         pass
 
 class QueryMaker(abc.ABC):
@@ -102,7 +110,7 @@ class QueryMaker(abc.ABC):
     def build(self):
         pass
 
-class SqliteDatabaseConnector(DatabaseConnector):
+class SqlDatabaseConnector(DatabaseConnector):
 
     class SqliteQueryMaker(QueryMaker):     
         
@@ -124,19 +132,6 @@ class SqliteDatabaseConnector(DatabaseConnector):
                 query+=" WHERE "+self.whereclause
             return query+";"
 
-
-    def __init__(self):
-        DatabaseConnector.__init__(self)
-        self.conn = None
-    
-    def connect(self, host, user, password):
-        try:
-            self.conn = sqlite3.connect(host)
-            print(sqlite3.version)
-        except Error as e:
-            print(e)
-
-
     def createTable(self, table_name, table_spec):
         query = "CREATE TABLE "+table_name+"("
         query += ",".join(field+" "+type for field, type in table_spec["fields"].items())
@@ -145,15 +140,15 @@ class SqliteDatabaseConnector(DatabaseConnector):
         if "foreign" in table_spec:
             query += ","+",".join(["FOREIGN KEY("+foreign+") REFERENCES "+table_spec["forein"][foreign]["table"]+"("+table_spec["forein"][foreign]["field"]+")" for foreign in table_spec["forein"]])
         query+=");"
-        print(query)
+        return self.send(query)
 
     def insert(self, table_name, values):
         query = "INSERT INTO "+table_name+"("        
         query+=",".join(values.keys())
         query += ") VALUES("
-        query+=",".join([str(x) for x in values.values()])
+        query+=",".join(["'"+str(x)+"'" for x in values.values()])
         query += ");"
-        print(query)
+        return self.send(query)
 
     def update(self, table_name, values, selector=None):        
         query = "UPDATE TABLE "+table_name      
@@ -163,11 +158,32 @@ class SqliteDatabaseConnector(DatabaseConnector):
             selector(maker)
             query+=" WHERE "+maker.clause
         query += ";"
-        print(query)
+        return self.send(query)
 
     def delete(self, table_name, where):
         query = "DELETE FROM "+table_name        
         maker = QueryMaker.WhereMaker()
         where(maker)
         query+=" WHERE "+maker.clause+";"
+        return self.send(query)
+
+class SqliteDatabaseConnector(SqlDatabaseConnector):
+    def __init__(self):
+        DatabaseConnector.__init__(self)
+        self.conn = None
+    
+    def connect(self, host, user="", password=""):
+        try:
+            self.conn = sqlite3.connect(host)
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
+
+    def exists(self, table_name):
+        return len(self.send("SELECT name FROM sqlite_master WHERE type='table' AND name='"+table_name+"';"))>0
+
+    def send(self, query):
         print(query)
+        c = self.conn.cursor()
+        c.execute(query)
+        return c.fetchall()

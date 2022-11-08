@@ -4,6 +4,26 @@ import requests
 import database_connector
 
 app=Flask(__name__)
+sql = database_connector.SqliteDatabaseConnector()
+sql.connect("database")
+if not sql.exists("Species"):
+    sql.createTable("Species", {
+        "fields":{
+            "name":"varchar(50)",
+            "familly":"varchar(50)",
+            "common_name":"varchar(50)",
+            "type":"varchar(20)",
+            "description":"varchar(500)"
+        },
+        "primary":["name"]
+    })
+    sql.insert("Species", {
+        "name":"example fish",
+        "familly":"example",
+        "common_name":"an example",
+        "type":"example",
+        "description":"this is actually a fish example"
+    })
 
 @app.route("/")
 def root():
@@ -19,46 +39,4 @@ def analize(ai_name, image):
     }
     rurl, parser = urlparsermap[ai_name.upper()] if ai_name in urlparsermap else durl
     return parser.parse(requests.get(rurl.replace("[image]", image)))
-
-builder = database_connector.SqliteDatabaseConnector.SqliteQueryMaker()\
-    .select("example")\
-    .fromTable("table", lambda joins:joins
-        .join("another", {"using":"id"})
-        .join("yetanother", {"from":"id", "to":"anotherid"}))\
-    .where(lambda where:where.init("example.id=0").andClause("another.afield='value'"))
-
-database_connector.SqliteDatabaseConnector().createTable(
-    "table",
-    {
-        "fields":{
-            "id":"int(10)",
-            "field":"varchar(5)",
-        },
-        "primary":["id"]
-    }
-)
-
-database_connector.SqliteDatabaseConnector().insert(
-    "table",
-    {
-        "id":0,
-        "field":"value"
-    }
-)
-
-database_connector.SqliteDatabaseConnector().update(
-    "table",
-    {
-        "id":0,
-        "field":"value"
-    },
-    lambda cond:cond.init("id=0")
-)
-
-database_connector.SqliteDatabaseConnector().delete(
-    "table",
-    lambda cond:cond.init("id=0")
-)
-
-print(builder.build(formated=True))
     
