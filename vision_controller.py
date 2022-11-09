@@ -86,4 +86,4 @@ def get_labels(imgBytes):
             })
         objects_formatted.append(obj)
 
-    
+    return objects_formatted

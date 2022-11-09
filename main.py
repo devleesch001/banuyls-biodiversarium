@@ -3,6 +3,12 @@ import os
 from parsers.ImerirParser import ImerirParser
 import requests
 import database_connector
+
+import io
+import re
+import base64
+import binascii
+import imghdr
 import vision_controller
 
 def getSqlConnection():
@@ -109,16 +115,36 @@ def getAllFish():
     return OK(result)
 
 @app.route("/analyze/<ai_name>", methods=["POST"])
-def analize(ai_name):
-    image = request.form.get("image")
-    imerirParser = ImerirParser()
-    durl = ("adefaulturl[image]", imerirParser)
-    urlparsermap = {
-        "IMERIR":("theimerirurl[image]", imerirParser),
-        "GOOGLE":("googlelensurl[image]", imerirParser)
-    }
-    rurl, parser = urlparsermap[ai_name.upper()] if ai_name in urlparsermap else durl
-    return OK(parser.parse(requests.get(rurl.replace("[image]", image))))
+def analyze(ai_name):
+    request_data = request.json
+
+    if 'content' not in request_data:
+        return KO({'error': 'No field content'})
+
+    # Removes base64 header
+    img_content = re.sub("data:image\/.*;base64,", "", request_data['content'])
+    try:
+        contentDecode = base64.b64decode(img_content, validate=False)
+    except binascii.Error:
+        return KO({'error': 'Field content is in an invalid base64 format'})
+
+    # Checks if the content is an image
+    if imghdr.what(None, contentDecode) == None:
+        return KO({'error': 'Field content is not an image'})
+
+    results = vision_controller.get_labels(contentDecode)
+
+    return OK(results)
+
+    # image = request.form.get("image")
+    # imerirParser = ImerirParser()
+    # durl = ("adefaulturl[image]", imerirParser)
+    # urlparsermap = {
+    #     "IMERIR":("theimerirurl[image]", imerirParser),
+    #     "GOOGLE":("googlelensurl[image]", imerirParser)
+    # }
+    # rurl, parser = urlparsermap[ai_name.upper()] if ai_name in urlparsermap else durl
+    # return OK(parser.parse(requests.get(rurl.replace("[image]", image))))
 
 if __name__ == "__main__":
     app.run()
