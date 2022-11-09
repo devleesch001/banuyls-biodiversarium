@@ -1,22 +1,19 @@
 from flask import Flask, request
-import os
 from parsers.ImerirParser import ImerirParser
 import requests
 import database_connector
+import database_connector_factory
 
-def getSqlConnection():
-    sql = database_connector.SqliteDatabaseConnector()
-    sql.connect("database")
-    return sql
+factory = database_connector_factory.SQLiteConnectorFactory("database")
 
-def OK(result):
+def OK(result="done"):
     return (result, 200)
 
-def KO(err):
+def KO(err="unknown error"):
     return (err, 400)
 
 def initdb():
-    sql = getSqlConnection()
+    sql = factory.createConnection()
     print(sql.exists("Species"))
     if not sql.exists("Species"):
         sql.createTable("Species", {
@@ -52,26 +49,27 @@ app=CustomApp(__name__)
 def root():
     return "<p>root</p>"
 
-@app.route("/pushfish", methods=["PUSH"])
+@app.route("/fish", methods=["PATCH"])
 def addOrUpdateFish():
-    sql = getSqlConnection()
-    result = None
+    sql = factory.createConnection()
     if(sql.execute(sql.makeQuary()\
         .select("name").fromTable("Species")\
-        .where(lambda w:w.init("name='"+request.form.get("name")+"'"))), 1):
-        result = sql.update("Species", request.form)
+        .where(lambda w:w.init("name='"+request.form.get("name")+"'")), 1)[0] is not None):
+        data = dict(request.form)
+        data.pop("name", None)
+        sql.update("Species",data)
     else:
-        result = sql.insert("Species", request.form)
+        sql.insert("Species", request.form)
     sql.disconnect()
-    return OK(result)
+    return OK()
 
-@app.route("/deletefish/<name>", methods=["DELETE"])
+@app.route("/fish/<name>", methods=["DELETE"])
 def deleteFish(name):
-    sql = getSqlConnection()
+    sql = factory.createConnection()
     result = KO("Fish "+name+" not found")
-    if(sql.execute(sql.makeQuary()\
+    if sql.execute(sql.makeQuary()\
         .select("name").fromTable("Species")\
-        .where(lambda w:w.init("name='"+name+"'"))), 1):
+        .where(lambda w:w.init("name='"+name+"'")), 1)[0] is not None:
         sql.delete("Species", lambda w:w.init("name='"+name+"'"))
         result = OK("Fish deleted")
     sql.disconnect()
@@ -79,30 +77,20 @@ def deleteFish(name):
 
 @app.route("/fish/<name>")
 def getFish(name):
-    sql = getSqlConnection()
+    sql = factory.createConnection()
     result = sql.execute(sql.makeQuary()\
         .select("*").fromTable("Species")
-        .where(lambda w:w.init("name='"+name+"'")), 1)
+        .where(lambda w:w.init("name='"+name+"'")), 1)[0]
     sql.disconnect()
-    return OK({
-        "name":result[0],
-        "familly":result[1],
-        "common_name":result[2],
-        "type":result[3],
-        "description":result[4]
-    })
+    if result is None:
+        return KO("fish "+name+" not found")
+    return OK(result)
 
 
 @app.route("/fish")
 def getAllFish():
-    sql = getSqlConnection()
-    result = [{
-        "name":result[0],
-        "familly":result[1],
-        "common_name":result[2],
-        "type":result[3],
-        "description":result[4]
-    } for result in sql.execute(sql.makeQuary()\
+    sql = factory.createConnection()
+    result = [result for result in sql.execute(sql.makeQuary()\
         .select("*").fromTable("Species"))]
     sql.disconnect()
     return OK(result)
