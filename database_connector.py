@@ -112,7 +112,7 @@ class QueryMaker(abc.ABC):
 
 class SqlDatabaseConnector(DatabaseConnector):
 
-    class SqliteQueryMaker(QueryMaker):     
+    class SqlQueryMaker(QueryMaker):     
         
         def build(self, formated=False):
             query = "SELECT"
@@ -120,7 +120,7 @@ class SqlDatabaseConnector(DatabaseConnector):
                 query += " "+select
             if formated:
                 query += "\n"
-            query += "FROM "
+            query += " FROM"
             previousTable = None
             for i in range(len(self.tables)):
                 join = self.tables[i]
@@ -131,6 +131,12 @@ class SqlDatabaseConnector(DatabaseConnector):
             if self.whereclause is not None:
                 query+=" WHERE "+self.whereclause
             return query+";"
+
+    def makeQuary(self):
+        return SqlDatabaseConnector.SqlQueryMaker()
+
+    def execute(self, maker:QueryMaker, limit = 0):
+        return self.send(maker.build(), limit)
 
     def createTable(self, table_name, table_spec):
         query = "CREATE TABLE "+table_name+"("
@@ -169,7 +175,7 @@ class SqlDatabaseConnector(DatabaseConnector):
 
 class SqliteDatabaseConnector(SqlDatabaseConnector):
     def __init__(self):
-        DatabaseConnector.__init__(self)
+        SqlDatabaseConnector.__init__(self)
         self.conn = None
     
     def connect(self, host, user="", password=""):
@@ -182,8 +188,13 @@ class SqliteDatabaseConnector(SqlDatabaseConnector):
     def exists(self, table_name):
         return len(self.send("SELECT name FROM sqlite_master WHERE type='table' AND name='"+table_name+"';"))>0
 
-    def send(self, query):
+    def send(self, query, limit = 0):
         print(query)
-        c = self.conn.cursor()
-        c.execute(query)
-        return c.fetchall()
+        if limit == 0:result = self.conn.execute(query).fetchall()
+        elif limit == 1:result = self.conn.execute(query).fetchone()
+        else:result = self.conn.execute(query).fetchmany(limit)
+        self.conn.commit()
+        return result
+
+    def disconnect(self):
+        self.conn.close()
