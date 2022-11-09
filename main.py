@@ -2,6 +2,7 @@ from flask import Flask
 from parsers.ImerirParser import ImerirParser
 import requests
 import database_connector
+import vision_controller
 
 app=Flask(__name__)
 sql = database_connector.SqliteDatabaseConnector()
@@ -39,4 +40,3 @@ def analize(ai_name, image):
     }
     rurl, parser = urlparsermap[ai_name.upper()] if ai_name in urlparsermap else durl
     return parser.parse(requests.get(rurl.replace("[image]", image)))
-    
