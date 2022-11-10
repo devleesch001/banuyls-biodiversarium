@@ -7,10 +7,13 @@ import database_connector_factory
 factory = database_connector_factory.SQLiteConnectorFactory("database")
 
 def OK(result="done"):
-    return (result, 200)
+    return ({"data":result}, 200)
 
 def KO(err="unknown error"):
-    return (err, 400)
+    return ({"error":err}, 500)
+
+def BadRequest(reason="unknown error"):    
+    return ({"error":reason}, 400)
 
 def initdb():
     sql = factory.createConnection()
@@ -44,10 +47,6 @@ class CustomApp(Flask):
 
 
 app=CustomApp(__name__)
-
-@app.route("/")
-def root():
-    return "<p>root</p>"
 
 @app.route("/fish", methods=["PATCH"])
 def addOrUpdateFish():

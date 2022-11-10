@@ -1,3 +1,4 @@
 flask
+flask_swagger
 requests
 pysqlite3
