@@ -1,3 +1,6 @@
 flask
+websockets
 requests
 pysqlite3
+pillow
+google

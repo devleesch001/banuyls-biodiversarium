@@ -1,126 +1,69 @@
 import abc
 import sqlite3
+from query_maker import QueryMaker
 from sqlite3 import Error
-from typing import Callable, Dict, List
+from typing import Dict, Callable, List, Tuple
+
+UNUSED = lambda x:x
+
+SQL_DATA_TYPE = float|int|str
+SQL_VALUES_TYPE = Dict[str, SQL_DATA_TYPE]
+TABLE_SPEC_TYPE = Dict[str, str|Dict[str, str]]
+SELECTOR_TYPE = Callable[[QueryMaker], str]
+SQL_RETURN_TYPE = List[Dict]
 
 class DatabaseConnector(abc.ABC):
-    @abc.abstractclassmethod
-    def connect(self, host, user, password):
-        pass
-
-    @abc.abstractclassmethod
-    def send(self, query):
-        pass
-
-    @abc.abstractclassmethod
-    def createTable(self, table_name, table_spec):
-        pass
-
-    @abc.abstractclassmethod
-    def insert(self, table_name, values):
-        pass
-
-    @abc.abstractclassmethod
-    def update(self, table_name, values, selector=None):
-        pass
-
-    @abc.abstractclassmethod
-    def delete(self, table_name, id):
-        pass
-
-    @abc.abstractclassmethod
-    def exists(self, table_name):
-        pass
-
-class QueryMaker(abc.ABC):
-    class TableSelector():
-        def __init__(self):
-            self.tables = []
-
-        def join(self, table, joinspecs, join="natural"):
-            fromt = None
-            tot = None
-            if "using" in joinspecs:
-                fromt = tot = joinspecs["using"]
-            else:
-                fromt = joinspecs["from"]
-                tot = joinspecs["to"]
-            self.tables.append((join, table, fromt, tot))
-            return self
-
-    class WhereMaker():
-        def __init__(self):
-            self.clause = ""
-
-        def init(self, clause):
-            if self.clause != "":
-                return self
-            self.clause = clause
-            return self
-
-        def andClause(self, clause):
-            if self.clause == "":
-                return self.init(clause)
-            self.clause+=" AND "+clause
-            return self
-
-        def orClause(self, clause):
-            if self.clause == "":
-                return self.init(clause)
-            self.clause+=" OR "+clause
-            return self
 
     def __init__(self):
-        self.whereclause=None
-        self.selected = []
-        self.tables=[]
-    
-    def select(self, selections):
-        self.selected.extend(selections if type(selections) == List[str] else [selections])
-        return self
-    
-    def fromTable(self, table, joins = None):
-        self.tables = [(None, table, None, None)]
-        if type(joins) == type(lambda:None):
-            selector = QueryMaker.TableSelector()
-            joins(selector)
-            self.tables.extend(selector.tables)
-        elif type(joins) == type({"":{"":""}}):
-            for jtable, join in joins.items():                
-                fromt = None
-                tot = None
-                if "using" in join:
-                    fromt = tot = join["using"]
-                else:
-                    fromt = join["from"]
-                    tot=join["to"]
-                self.tables.append((join["type"] if "type" in join else "netural"
-                , jtable, fromt, tot))
-        elif(joins is not None):
-            print("WARN: joins argument must be a callable of type (QueryMaker.TableSelector)=>None or a dict, ignoring join clauses")
-        return self
-        
-    def where(self, where):
-        maker = QueryMaker.WhereMaker()
-        where(maker)
-        self.whereclause=maker.clause
-        return self
-    
+        self.tableSpecs:Dict[str, List[str]] = {}
+
     @abc.abstractclassmethod
-    def build(self):
+    def connect(self, host:str, user:str, password:str)->bool:
+        pass
+
+    @abc.abstractclassmethod
+    def disconnect(self)->None:
+        pass
+
+    @abc.abstractclassmethod
+    def send(self, parseValues:Dict[int, str], query:str)->SQL_RETURN_TYPE:
+        pass
+
+    @abc.abstractclassmethod
+    def createTable(self, table_name:str, table_spec:TABLE_SPEC_TYPE)->SQL_RETURN_TYPE:
+        pass
+
+    @abc.abstractclassmethod
+    def insert(self, table_name:str, values:SQL_VALUES_TYPE)->SQL_RETURN_TYPE:
+        pass
+
+    @abc.abstractclassmethod
+    def update(self, table_name:str, values:SQL_VALUES_TYPE, selector:SELECTOR_TYPE=None)->SQL_RETURN_TYPE:
+        pass
+
+    @abc.abstractclassmethod
+    def delete(self, table_name:str, where:SELECTOR_TYPE)->SQL_RETURN_TYPE:
+        pass
+
+    @abc.abstractclassmethod
+    def exists(self, table_name:str)->bool:
+        pass
+
+    @abc.abstractclassmethod
+    def makeQuary(self)->QueryMaker:
         pass
 
 class SqlDatabaseConnector(DatabaseConnector):
 
-    class SqliteQueryMaker(QueryMaker):     
+    class SqlQueryMaker(QueryMaker):     
         
-        def build(self, formated=False):
+        def build(self, formated:bool=False)->str:
             query = "SELECT"
             for select in self.selected:
                 query += " "+select
             if formated:
                 query += "\n"
-            query += "FROM "
+            query += " FROM"
             previousTable = None
             for i in range(len(self.tables)):
                 join = self.tables[i]
@@ -132,7 +75,16 @@ class SqlDatabaseConnector(DatabaseConnector):
                 query+=" WHERE "+self.whereclause
             return query+";"
 
-    def createTable(self, table_name, table_spec):
+    def __init__(self):
+        DatabaseConnector.__init__(self)
+
+    def makeQuary(self)->QueryMaker:
+        return SqlDatabaseConnector.SqlQueryMaker()
+
+    def execute(self, maker:QueryMaker, limit:int = 0)->SQL_RETURN_TYPE:
+        return self.send(maker.build(), parseValues=self.tableSpecs[maker.fromTableName], limit=limit)
+
+    def createTable(self, table_name:str, table_spec:TABLE_SPEC_TYPE)->SQL_RETURN_TYPE:
         query = "CREATE TABLE "+table_name+"("
         query += ",".join(field+" "+type for field, type in table_spec["fields"].items())
         if "primary" in table_spec:
@@ -140,50 +92,98 @@ class SqlDatabaseConnector(DatabaseConnector):
         if "foreign" in table_spec:
             query += ","+",".join(["FOREIGN KEY("+foreign+") REFERENCES "+table_spec["forein"][foreign]["table"]+"("+table_spec["forein"][foreign]["field"]+")" for foreign in table_spec["forein"]])
         query+=");"
-        return self.send(query)
+        try:
+            self.send(query)
+            self.tableSpecs[table_name] = table_spec["fields"].keys()
+            return {"result":"OK"}
+        except Exception as e:
+            return {"result":"KO", "reason":str(e)}
 
-    def insert(self, table_name, values):
+    def insert(self, table_name:str, values:SQL_VALUES_TYPE)->SQL_RETURN_TYPE:
         query = "INSERT INTO "+table_name+"("        
         query+=",".join(values.keys())
         query += ") VALUES("
         query+=",".join(["'"+str(x)+"'" for x in values.values()])
-        query += ");"
-        return self.send(query)
+        query += ");"        
+        try:
+            self.send(query)
+            return {"result":"OK"}
+        except Exception as e:
+            return {"result":"KO", "reason":str(e)}
 
-    def update(self, table_name, values, selector=None):        
-        query = "UPDATE TABLE "+table_name      
+    def update(self, table_name:str, values:SQL_VALUES_TYPE, selector:SELECTOR_TYPE=None)->SQL_RETURN_TYPE:        
+        query = "UPDATE "+table_name      
         query+=" SET "+",".join([field+"='"+str(value)+"'" for field, value in values.items()])
         if selector is not None:
             maker = QueryMaker.WhereMaker()
             selector(maker)
             query+=" WHERE "+maker.clause
         query += ";"
-        return self.send(query)
+        try:
+            self.send(query)
+            return {"result":"OK"}
+        except Exception as e:
+            return {"result":"KO", "reason":str(e)}
 
-    def delete(self, table_name, where):
+    def delete(self, table_name:str, where:SELECTOR_TYPE)->SQL_RETURN_TYPE:
         query = "DELETE FROM "+table_name        
         maker = QueryMaker.WhereMaker()
         where(maker)
         query+=" WHERE "+maker.clause+";"
-        return self.send(query)
+        try:
+            self.send(query)
+            return {"result":"OK"}
+        except Exception as e:
+            return {"result":"KO", "reason":str(e)}
 
 class SqliteDatabaseConnector(SqlDatabaseConnector):
     def __init__(self):
-        DatabaseConnector.__init__(self)
+        SqlDatabaseConnector.__init__(self)
         self.conn = None
     
-    def connect(self, host, user="", password=""):
+    def connect(self, host:str, user:str="", password:str="")->bool:
+        UNUSED(user)
+        UNUSED(password)
         try:
             self.conn = sqlite3.connect(host)
-            print(sqlite3.version)
+            tables = self.send("SELECT name FROM sqlite_master WHERE type='table'")
+            for table in tables[0]:
+                columns = self.send("PRAGMA table_info("+table+");")
+                tableSpec = {}
+                for column in columns:
+                    tableSpec[column[0]] = column[1]
+                self.tableSpecs[table]=tableSpec
+            return True
         except Error as e:
             print(e)
+            return False
 
-    def exists(self, table_name):
+    def exists(self, table_name:str)->bool:
         return len(self.send("SELECT name FROM sqlite_master WHERE type='table' AND name='"+table_name+"';"))>0
 
-    def send(self, query):
-        print(query)
-        c = self.conn.cursor()
-        c.execute(query)
-        return c.fetchall()
+    def send(self, query:str, parseValues:Dict[int, str]=None, limit:int = 0)->SQL_RETURN_TYPE:
+        if limit == 0:result = self.conn.execute(query).fetchall()
+        elif limit == 1:result = [self.conn.execute(query).fetchone()]
+        else:result = self.conn.execute(query).fetchmany(limit)
+        self.conn.commit()
+        parsed = []
+        for value in result:
+            if value is None:
+                parsed.append(None)
+            else:
+                if parseValues is not None:
+                    data = {}
+                    for i in range(len(value)):
+                        data[parseValues[i]]=value[i]
+                    parsed.append(data)
+                else:
+                    parsed.append(value)
+        return parsed
+
+    def disconnect(self)->bool:
+        try:
+            self.conn.close()
+            return True
+        except Exception as e:
+            print(e)
+            return False
