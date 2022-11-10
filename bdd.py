@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Column, Integer, Text
-
+import json
 from sqlalchemy.sql import func
 
 app = Flask(__name__, template_folder='templates')
@@ -42,12 +42,17 @@ def species_create():
             name=request.form["name"],
             family=request.form["family"],
             s_type=request.form["s_type"],
-            description=request.form["description"]
+            description=json.dumps({"fr": request.form["description"]})
         )
         db.session.add(speccy)
         db.session.commit()
         return redirect(url_for("species_list", scientific_name=speccy.scientific_name))
 
     return render_template("create_species.html")
+
+@app.route("/update_species", methods=["GET", "POST"])
+def update_species():
+    
+    return render_template("species_list.html")
 if __name__ == '__main__':
     app.run()
