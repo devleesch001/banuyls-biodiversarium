@@ -35,13 +35,6 @@ def initdb():
             },
             "primary":["name"]
         })
-        sql.insert("Species", {
-            "name":"example fish",
-            "familly":"example",
-            "common_name":"an example",
-            "type":"example",
-            "description":"this is actually a fish example"
-        })
     sql.disconnect()
 
 class CustomApp(Flask):
