@@ -1,14 +1,14 @@
 from flask import Flask, request
-from parsers.ImerirParser import ImerirParser
-import requests
-import database_connector
+from flask_cors import CORS
 import database_connector_factory
-import io
 import re
 import base64
 import binascii
 import imghdr
-import vision_controller
+#import vision_controller
+import imerir_controller
+
+MOBILE_AI = "IMERIR"
 
 factory = database_connector_factory.SQLiteConnectorFactory("database")
 
@@ -46,6 +46,7 @@ class CustomApp(Flask):
 
 
 app=CustomApp(__name__)
+CORS(app)
 
 @app.route("/fish", methods=["PATCH"])
 def addOrUpdateFish():
@@ -93,27 +94,46 @@ def getAllFish():
     sql.disconnect()
     return OK(result)
 
-@app.route("/analyze/<ai_name>", methods=["POST"])
-def analyze(ai_name):
-    request_data = request.json
+def checks(request_data):
 
     if 'content' not in request_data:
-        return BadRequest('No field content')
+        return (False, BadRequest('No field content'))
 
     # Removes base64 header
     img_content = re.sub("data:image\/.*;base64,", "", request_data['content'])
     try:
         contentDecode = base64.b64decode(img_content, validate=False)
     except binascii.Error:
-        return BadRequest('Field content is in an invalid base64 format')
+        return (False, BadRequest('Field content is in an invalid base64 format'))
 
     # Checks if the content is an image
     if imghdr.what(None, contentDecode) == None:
-        return BadRequest('Field content is not an image')
+        return (False, BadRequest('Field content is not an image'))
 
-    results = vision_controller.get_labels(contentDecode)
+    return (True, contentDecode)
 
+@app.route("/mobile/analyze", methods=["POST"])
+def analyzeMobile():
+    check = checks(request.json)
+    if check[0]:
+        contentDecode = check[1]
+        if MOBILE_AI=="IMERIR":
+            results = imerir_controller.get_labels(contentDecode)
+        """else:
+            results = vision_controller.get_labels(contentDecode)"""
+    else:
+        return check[1]
+    return OK(results)
+
+@app.route("/tablet/analyze", methods=["POST"])
+def analyzeTablet():
+    check = checks(request.json)
+    if check[0]:
+        contentDecode = check[1]
+        results = imerir_controller.get_labels(contentDecode)
+    else:
+        return check[1]
     return OK(results)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -146,7 +146,6 @@ class SqliteDatabaseConnector(SqlDatabaseConnector):
         UNUSED(password)
         try:
             self.conn = sqlite3.connect(host)
-            print("SQLite connected, version "+sqlite3.version)
             tables = self.send("SELECT name FROM sqlite_master WHERE type='table'")
             for table in tables[0]:
                 columns = self.send("PRAGMA table_info("+table+");")
@@ -184,7 +183,6 @@ class SqliteDatabaseConnector(SqlDatabaseConnector):
     def disconnect(self)->bool:
         try:
             self.conn.close()
-            print("SQLite disconnected")
             return True
         except Exception as e:
             print(e)

@@ -1,4 +1,6 @@
 flask
-flask_swagger
+websockets
 requests
 pysqlite3
+pillow
+google
