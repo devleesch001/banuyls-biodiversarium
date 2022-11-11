@@ -2,13 +2,14 @@ from flask import Flask, request, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Column, Integer, Text
 import json
+import argparse
 from sqlalchemy.sql import func
 from flask_cors import CORS
 import re
 import base64
 import binascii
 import imghdr
-#import vision_controller
+# import vision_controller
 import imerir_controller
 
 app = Flask(__name__, template_folder='templates')
@@ -32,77 +33,10 @@ def BadRequest(reason="unknown error"):
     return ({"error": reason}, 400)
 
 
-def initdb():
-    sql = factory.createConnection()
-    print(sql.exists("Species"))
-    if not sql.exists("Species"):
-        sql.createTable("Species", {
-            "fields": {
-                "name": "varchar(50)",
-                "familly": "varchar(50)",
-                "common_name": "varchar(50)",
-                "type": "varchar(20)",
-                "description": "varchar(500)"
-            },
-            "primary": ["name"]
-        })
-    sql.disconnect()
-
-
 CORS(app)
 
 
-@app.route("/fish", methods=["PATCH"])
-def addOrUpdateFish():
-    sql = factory.createConnection()
-    if (sql.execute(sql.makeQuary()
-                    .select("name").fromTable("Species")
-                    .where(lambda w: w.init("name='"+request.form.get("name")+"'")), 1)[0] is not None):
-        data = dict(request.form)
-        data.pop("name", None)
-        sql.update("Species", data)
-    else:
-        sql.insert("Species", request.form)
-    sql.disconnect()
-    return OK()
-
-
-@app.route("/fish/<name>", methods=["DELETE"])
-def deleteFish(name):
-    sql = factory.createConnection()
-    result = BadRequest("Fish "+name+" not found")
-    if sql.execute(sql.makeQuary()
-                   .select("name").fromTable("Species")
-                   .where(lambda w: w.init("name='"+name+"'")), 1)[0] is not None:
-        sql.delete("Species", lambda w: w.init("name='"+name+"'"))
-        result = OK("Fish deleted")
-    sql.disconnect()
-    return result
-
-
-@app.route("/fish/<name>")
-def getFish(name):
-    sql = factory.createConnection()
-    result = sql.execute(sql.makeQuary()
-                         .select("*").fromTable("Species")
-                         .where(lambda w: w.init("name='"+name+"'")), 1)[0]
-    sql.disconnect()
-    if result is None:
-        return BadRequest("fish "+name+" not found")
-    return OK(result)
-
-
-@app.route("/fish")
-def getAllFish():
-    sql = factory.createConnection()
-    result = [result for result in sql.execute(sql.makeQuary()
-                                               .select("*").fromTable("Species"))]
-    sql.disconnect()
-    return OK(result)
-
-
 def checks(request_data):
-
     if 'content' not in request_data:
         return (False, BadRequest('No field content'))
 
@@ -194,9 +128,13 @@ def species_create():
 
 @app.route("/update_species", methods=["GET", "POST"])
 def update_species():
-
     return render_template("species_list.html")
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    parser = argparse.ArgumentParser(description="Flask API")
+    parser.add_argument("-p", "--port", default=5000, type=int, help="port number")
+    parser.add_argument("-d", "--debug", default=False, type=bool, help="Debug")
+    args = parser.parse_args()
+
+    app.run(host="0.0.0.0", port=args.port, debug=args.debug)

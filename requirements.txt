@@ -1,7 +1,9 @@
 flask
-websockets
-requests
-pysqlite3
-pillow
-google
 flask_cors
+flask_sqlalchemy
+pysqlite3
+requests
+pillow
+websockets
+google
+
