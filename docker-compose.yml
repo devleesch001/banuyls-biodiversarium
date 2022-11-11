@@ -21,7 +21,7 @@ services:
             - ./certbot/conf/:/etc/letsencrypt/:rw
 
     fish-hub:
-        build: ./fish-hub
+        build: ./web-appli
         restart: always
         labels:
             - traefik.enable=true
