@@ -54,7 +54,7 @@ def checks(request_data):
     return (True, contentDecode)
 
 
-@app.route("/mobile/analyze", methods=["POST"])
+@app.route("/api/mobile/analyze", methods=["POST"])
 def analyzeMobile():
     check = checks(request.json)
     if check[0]:
@@ -68,7 +68,7 @@ def analyzeMobile():
     return OK(results)
 
 
-@app.route("/tablet/analyze", methods=["POST"])
+@app.route("/api/tablet/analyze", methods=["POST"])
 def analyzeTablet():
     check = checks(request.json)
     if check[0]:
@@ -95,12 +95,12 @@ with app.app_context():
     db.create_all()
 
 
-@app.route('/')
+@app.route('/api')
 def hello_world():  # put application's code here
     return {'message': "Hello World!'"}
 
 
-@app.route("/species")
+@app.route("/api/species")
 def species_list():
     species = db.session.execute(
         db.select(Species).order_by(Species.scientific_name)).scalars()
@@ -109,7 +109,7 @@ def species_list():
     return render_template("species_list.html", species=species)
 
 
-@app.route("/species_create", methods=["GET", "POST"])
+@app.route("/api/species_create", methods=["GET", "POST"])
 def species_create():
     if request.method == "POST":
         speccy = Species(
@@ -126,7 +126,7 @@ def species_create():
     return render_template("create_species.html")
 
 
-@app.route("/update_species", methods=["GET", "POST"])
+@app.route("/api/update_species", methods=["GET", "POST"])
 def update_species():
     return render_template("species_list.html")
 
