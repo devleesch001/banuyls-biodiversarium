@@ -13,6 +13,7 @@ services:
             - ./certbot/conf/:/etc/nginx/ssl/:ro
         networks:
             - fish-hub-network
+            - back-fish-network
 
     certbot:
         image: certbot/certbot:latest
@@ -23,20 +24,19 @@ services:
     fish-hub:
         build: ./web-appli
         restart: always
-        labels:
-            - traefik.enable=true
-            - traefik.docker.network=proxy
-            # HTTP
-            - traefik.http.services.fish-hub.loadbalancer.server.port=80
-            - traefik.http.routers.fish-hub.entrypoints=websecure
-            - traefik.http.routers.fish-hub.rule=Host(`fish-hub.dev-analysis.com`)
-            - traefik.http.routers.fish-hub.tls.certresolver=resolver
-            - traefik.http.routers.fish-hub.service=fish-hub
         networks:
             - fish-hub-network
 
+    back-fish:
+        build: ./back-fish
+        restart: always
+        networks:
+            - back-fish-network
+
 networks:
     fish-hub-network:
+        external: false
+    back-fish-network:
         external: false
     default:
         external: false
