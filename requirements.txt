@@ -4,3 +4,4 @@ requests
 pysqlite3
 pillow
 google
+flask_cors
