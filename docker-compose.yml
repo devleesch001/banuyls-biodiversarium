@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+    webserver:
+        image: nginx:latest
+        ports:
+            - 80:80
+            - 443:443
+        restart: always
+        volumes:
+            - ./nginx/conf/:/etc/nginx/conf.d/:ro
+            - ./certbot/www:/var/www/certbot/:ro
+            - ./certbot/conf/:/etc/nginx/ssl/:ro
+        networks:
+            - fish-hub-network
+
+    certbot:
+        image: certbot/certbot:latest
+        volumes:
+            - ./certbot/www/:/var/www/certbot/:rw
+            - ./certbot/conf/:/etc/letsencrypt/:rw
+
+    fish-hub:
+        build: ./fish-hub
+        restart: always
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=proxy
+            # HTTP
+            - traefik.http.services.fish-hub.loadbalancer.server.port=80
+            - traefik.http.routers.fish-hub.entrypoints=websecure
+            - traefik.http.routers.fish-hub.rule=Host(`fish-hub.dev-analysis.com`)
+            - traefik.http.routers.fish-hub.tls.certresolver=resolver
+            - traefik.http.routers.fish-hub.service=fish-hub
+        networks:
+            - fish-hub-network
+
+networks:
+    fish-hub-network:
+        external: false
+    default:
+        external: false
