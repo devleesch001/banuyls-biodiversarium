@@ -2,9 +2,9 @@ FROM python:3
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY api/requirements.txt ./
+RUN pip install --no-cache-dir -r api/requirements.txt
 
 COPY . .
 
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./api/main.py" ]
