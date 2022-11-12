@@ -1,0 +1,4 @@
+[submodule "back-fish"]
+	path = back-fish
+	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/back-fish.git
+	branch = main
