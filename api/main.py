@@ -1,101 +1,42 @@
-from flask import Flask, request
+from flask import Flask, request, render_template, url_for, redirect
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import String, Column, Integer, Text
+import json
+import argparse
+from sqlalchemy.sql import func
 from flask_cors import CORS
-import database_connector_factory
 import re
 import base64
 import binascii
 import imghdr
-#import vision_controller
+# import vision_controller
 import imerir_controller
+
+app = Flask(__name__, template_folder='templates')
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aquarium.db"
+
+db = SQLAlchemy(app)
+db.init_app(app)
 
 MOBILE_AI = "IMERIR"
 
-factory = database_connector_factory.SQLiteConnectorFactory("database")
 
 def OK(result="done"):
-    return ({"data":result}, 200)
+    return ({"data": result}, 200)
+
 
 def KO(err="unknown error"):
-    return ({"error":err}, 500)
-
-def BadRequest(reason="unknown error"):    
-    return ({"error":reason}, 400)
-
-def initdb():
-    sql = factory.createConnection()
-    print(sql.exists("Species"))
-    if not sql.exists("Species"):
-        sql.createTable("Species", {
-            "fields":{
-                "name":"varchar(50)",
-                "familly":"varchar(50)",
-                "common_name":"varchar(50)",
-                "type":"varchar(20)",
-                "description":"varchar(500)"
-            },
-            "primary":["name"]
-        })
-    sql.disconnect()
-
-class CustomApp(Flask):
-    def run(self, host=None, port=None, debug=None, load_dotenv=True, **options):
-        print("server initialized")
-        with self.app_context():
-            initdb()
-        super(CustomApp, self).run(host=host, port=port, debug=debug, load_dotenv=load_dotenv, **options)
+    return ({"error": err}, 500)
 
 
-app=CustomApp(__name__)
+def BadRequest(reason="unknown error"):
+    return ({"error": reason}, 400)
+
+
 CORS(app)
 
-@app.route("/fish", methods=["PATCH"])
-def addOrUpdateFish():
-    sql = factory.createConnection()
-    if(sql.execute(sql.makeQuary()\
-        .select("name").fromTable("Species")\
-        .where(lambda w:w.init("name='"+request.form.get("name")+"'")), 1)[0] is not None):
-        data = dict(request.form)
-        data.pop("name", None)
-        sql.update("Species",data)
-    else:
-        sql.insert("Species", request.form)
-    sql.disconnect()
-    return OK()
-
-@app.route("/fish/<name>", methods=["DELETE"])
-def deleteFish(name):
-    sql = factory.createConnection()
-    result = BadRequest("Fish "+name+" not found")
-    if sql.execute(sql.makeQuary()\
-        .select("name").fromTable("Species")\
-        .where(lambda w:w.init("name='"+name+"'")), 1)[0] is not None:
-        sql.delete("Species", lambda w:w.init("name='"+name+"'"))
-        result = OK("Fish deleted")
-    sql.disconnect()
-    return result
-
-@app.route("/fish/<name>")
-def getFish(name):
-    sql = factory.createConnection()
-    result = sql.execute(sql.makeQuary()\
-        .select("*").fromTable("Species")
-        .where(lambda w:w.init("name='"+name+"'")), 1)[0]
-    sql.disconnect()
-    if result is None:
-        return BadRequest("fish "+name+" not found")
-    return OK(result)
-
-
-@app.route("/fish")
-def getAllFish():
-    sql = factory.createConnection()
-    result = [result for result in sql.execute(sql.makeQuary()\
-        .select("*").fromTable("Species"))]
-    sql.disconnect()
-    return OK(result)
 
 def checks(request_data):
-
     if 'content' not in request_data:
         return (False, BadRequest('No field content'))
 
@@ -112,12 +53,13 @@ def checks(request_data):
 
     return (True, contentDecode)
 
-@app.route("/mobile/analyze", methods=["POST"])
+
+@app.route("/api/mobile/analyze", methods=["POST"])
 def analyzeMobile():
     check = checks(request.json)
     if check[0]:
         contentDecode = check[1]
-        if MOBILE_AI=="IMERIR":
+        if MOBILE_AI == "IMERIR":
             results = imerir_controller.get_labels(contentDecode)
         """else:
             results = vision_controller.get_labels(contentDecode)"""
@@ -125,7 +67,8 @@ def analyzeMobile():
         return check[1]
     return OK(results)
 
-@app.route("/tablet/analyze", methods=["POST"])
+
+@app.route("/api/tablet/analyze", methods=["POST"])
 def analyzeTablet():
     check = checks(request.json)
     if check[0]:
@@ -135,5 +78,63 @@ def analyzeTablet():
         return check[1]
     return OK(results)
 
+
+class Species(db.Model):
+    id = Column(Integer, primary_key=True)
+    scientific_name = Column(String(50))
+    name = Column(String(50))
+    family = Column(String(50))
+    description = Column(Text)
+    s_type = Column(String(20))
+
+    def __repr__(self):
+        return f'<Species {self.s_name}>'
+
+
+with app.app_context():
+    db.create_all()
+
+
+@app.route('/api')
+def hello_world():  # put application's code here
+    return {'message': "Hello World!'"}
+
+
+@app.route("/api/species")
+def species_list():
+    species = db.session.execute(
+        db.select(Species).order_by(Species.scientific_name)).scalars()
+    for specy in species:
+        print("Species: " + specy.name)
+    return render_template("species_list.html", species=species)
+
+
+@app.route("/api/species_create", methods=["GET", "POST"])
+def species_create():
+    if request.method == "POST":
+        speccy = Species(
+            scientific_name=request.form["s_name"],
+            name=request.form["name"],
+            family=request.form["family"],
+            s_type=request.form["s_type"],
+            description=json.dumps({"fr": request.form["description"]})
+        )
+        db.session.add(speccy)
+        db.session.commit()
+        return redirect(url_for("species_list", scientific_name=speccy.scientific_name))
+
+    return render_template("create_species.html")
+
+
+@app.route("/api/update_species", methods=["GET", "POST"])
+def update_species():
+    return render_template("species_list.html")
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    parser = argparse.ArgumentParser(description="Flask API")
+    parser.add_argument("-p", "--port", default=5000, type=int, help="port number")
+    parser.add_argument("-d", "--debug", default=False, type=bool, help="Debug")
+    args = parser.parse_args()
+
+    app.run(host="0.0.0.0", port=args.port, debug=args.debug)
