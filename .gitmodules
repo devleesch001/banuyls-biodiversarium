@@ -2,3 +2,7 @@
 	path = back-fish
 	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/back-fish.git
 	branch = main
+[submodule "web-appli"]
+	path = web-appli
+	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/web-appli.git
+	branch = main
