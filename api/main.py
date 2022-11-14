@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Column, Integer, Text
+from sqlalchemy import String, Column, Integer, Text, update, delete, select
 import json
 import argparse
 from sqlalchemy.sql import func
@@ -21,15 +21,15 @@ db.init_app(app)
 MOBILE_AI = "IMERIR"
 
 
-def OK(result="done"):
+def OK(result="Done"):
     return ({"data": result}, 200)
 
 
-def KO(err="unknown error"):
+def KO(err="UNKNW"):
     return ({"error": err}, 500)
 
 
-def BadRequest(reason="unknown error"):
+def BadRequest(reason="UNKNW"):
     return ({"error": reason}, 400)
 
 
@@ -38,18 +38,18 @@ CORS(app)
 
 def checks(request_data):
     if 'content' not in request_data:
-        return (False, BadRequest('No field content'))
+        return (False, BadRequest('NOCONTENT'))
 
     # Removes base64 header
     img_content = re.sub("data:image\/.*;base64,", "", request_data['content'])
     try:
         contentDecode = base64.b64decode(img_content, validate=False)
     except binascii.Error:
-        return (False, BadRequest('Field content is in an invalid base64 format'))
+        return (False, BadRequest('CONTENTBADFORMAT'))
 
     # Checks if the content is an image
     if imghdr.what(None, contentDecode) == None:
-        return (False, BadRequest('Field content is not an image'))
+        return (False, BadRequest('CONTENTNOIMAGE'))
 
     return (True, contentDecode)
 
@@ -88,47 +88,90 @@ class Species(db.Model):
     s_type = Column(String(20))
 
     def __repr__(self):
-        return f'<Species {self.s_name}>'
+        return f'<Species {self.scientific_name}>'
+
+    def json(self):
+        return {
+            "id":self.id,
+            "s_name":self.scientific_name,
+            "name":self.name,
+            "family":self.family,
+            "description":self.description,
+            "type":self.s_type
+        }
 
 
 with app.app_context():
     db.create_all()
 
+def toList(scalar):
+    list = []
+    for item in scalar:
+        list.append(item.json())
+    return list
+
 
 @app.route('/api')
 def hello_world():  # put application's code here
-    return {'message': "Hello World!'"}
+    return OK("hello world!")
 
 
 @app.route("/api/species")
 def species_list():
     species = db.session.execute(
-        db.select(Species).order_by(Species.scientific_name)).scalars()
-    for specy in species:
-        print("Species: " + specy.name)
-    return render_template("species_list.html", species=species)
+        select(Species).order_by(Species.scientific_name)).scalars()
+    return OK(toList(species))
+
+@app.route("/api/species/<s_name>")
+def speccy(s_name):
+    species = db.session.execute(
+        db.select(Species).where(Species.scientific_name == s_name)).scalars()
+    return OK(toList(species))
 
 
-@app.route("/api/species_create", methods=["GET", "POST"])
+@app.route("/api/species_create", methods=["POST"])
 def species_create():
-    if request.method == "POST":
-        speccy = Species(
-            scientific_name=request.form["s_name"],
-            name=request.form["name"],
-            family=request.form["family"],
-            s_type=request.form["s_type"],
-            description=json.dumps({"fr": request.form["description"]})
-        )
-        db.session.add(speccy)
-        db.session.commit()
-        return redirect(url_for("species_list", scientific_name=speccy.scientific_name))
+    
+    speccy = Species(
+        scientific_name=request.json["s_name"],
+        name=request.json["name"],
+        family=request.json["family"],
+        s_type=request.json["type"],
+        description=request.json["description"]
+    )
+    db.session.add(speccy)
+    db.session.commit()
+    return OK()
 
-    return render_template("create_species.html")
+@app.route("/api/species_delete/<id>", methods=["DELETE"])
+def species_delete(id):
+    if(len(toList(db.session.execute(
+        db.select(Species).where(Species.id == id)).scalars())) == 0):
+        return BadRequest("FISHNOFOUND")
+    db.session.execute(        
+        delete(Species).where(Species.id == id)  
+    )
+    db.session.commit()
+    return OK()
 
 
-@app.route("/api/update_species", methods=["GET", "POST"])
-def update_species():
-    return render_template("species_list.html")
+@app.route("/api/update_speccy", methods=["POST"])
+def update_species():  
+    if(len(db.session.execute(
+        db.select(Species).where(Species.id == request.form["id"])).scalars()) == 0):
+        return BadRequest("FISHNOFOUND")
+    speccy = Species(
+        scientific_name=request.form["s_name"],
+        name=request.form["name"],
+        family=request.form["family"],
+        s_type=request.form["s_type"],
+        description=request.form["description"]
+    )        
+    db.session.execute(
+        update(Species).values(speccy).where(Species.id == request.form["id"])   
+    )
+    db.session.commit()
+    return OK()
 
 
 if __name__ == "__main__":

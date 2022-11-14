@@ -1,26 +1,78 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <v-app style="background-color: #e6e6e6;">
+    <v-app-bar dense color="green">
+      <v-toolbar-title style="font-weight: bold; font-size:1.5em">
+        <v-icon style="margin-right:20px">mdi-desktop-classic</v-icon>
+        Seaquarium admin pannel
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon style="margin-right:30px"><v-icon>mdi-power</v-icon></v-btn>
+    </v-app-bar>
+    <v-main>
+      <SpeciesPannelVue v-if="menuselection==0"></SpeciesPannelVue>
+      <StatsPannelVue v-if="menuselection==1"></StatsPannelVue>
+    </v-main>
+    <v-bottom-navigation
+      v-model="menuselection"
+      :style="'background-color:'+color"
+      mode="shift"
+      grow
+    >
+      <v-btn>
+        <v-icon>mdi-jellyfish</v-icon>
+        <span>Species</span>
+      </v-btn>
+      <v-btn>
+        <v-icon>mdi-chart-bar</v-icon>
+        <span>Stats</span>
+      </v-btn>
+    </v-bottom-navigation>
+  </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+
+import SpeciesPannelVue from './components/SpeciesPannel.vue'
+import StatsPannelVue from './components/StatsPannel.vue'
 
 export default {
   name: 'App',
+
   components: {
-    HelloWorld
+    SpeciesPannelVue,StatsPannelVue
+  },
+
+  data(){
+    return {menuselection: 0}
+  },
+  computed:{
+    color(){   
+      switch (this.menuselection) {
+          case 0: return '#c4d9ff'
+          case 1: return 'teal'
+          case 2: return 'brown'
+          case 3: return 'indigo'
+          default: return 'blue-grey'
+        }
+    }
+  },
+  watch: {
+    menuselection(newMenu, oldMenu) {
+      if(newMenu == undefined)
+      {
+        this.menuselection = oldMenu;
+      }
+      else
+      {
+        this.menuselection = newMenu;
+      }
+    }
   }
 }
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style scoped>
+  .v-bottom-navigation{
+    transform:none !important;
+  }
 </style>
