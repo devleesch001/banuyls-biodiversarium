@@ -31,12 +31,14 @@ services:
         restart: always
         networks:
             - back-fish-network
+            - analyze-fish-back-network
 
     ia:
         build: ./analyze-fish-remork
         restart: always
         networks:
             - analyze-fish-remork-network
+            - analyze-fish-back-network
 
 networks:
     fish-hub-network:
@@ -44,6 +46,8 @@ networks:
     back-fish-network:
         external: false
     analyze-fish-remork-network:
+        external: false
+    analyze-fish-back-network:
         external: false
     default:
         external: false
