@@ -1,5 +1,5 @@
 import React from 'react'
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 
 interface CamProps {
@@ -22,6 +22,7 @@ interface CamProps {
 }
 
 const Cam: React.FC<CamProps> = (Props) => {
+        const [counter, setCounter] = useState(0);
         const { fishResult, setFishResult } = Props;
 
         const displayVideo = () => {
@@ -38,6 +39,15 @@ const Cam: React.FC<CamProps> = (Props) => {
                 }
         };
         
+        useEffect(() => {
+                const interval = setInterval(() => {
+                        displayVideo();
+                        setCounter((prevCounter) => prevCounter);
+                }, 1);
+
+                return () => clearInterval(interval);
+        }, []);
+
         const onSelectFish = (sender: any) => {
                 let canvas = document.querySelector('canvas');
                 let img = document.getElementById('videoDisplay') as HTMLImageElement;
@@ -108,7 +118,6 @@ const Cam: React.FC<CamProps> = (Props) => {
                         <img id="videoDisplay" style={{backgroundColor: 'black', width: 800, height: 600}} onClick={onSelectFish} width={800}></img>
                         <video crossOrigin="anonymous" src="http://localhost:8000/video"  controls={false}
                         autoPlay={true} muted style={{visibility: 'hidden', backgroundColor: 'black' , width : '100%', height : '100%'}}
-                        onTimeUpdate={displayVideo}
                         />
                    </>
         );
