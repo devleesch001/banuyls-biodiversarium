@@ -64,7 +64,7 @@ class Inferer:
 
         LOGGER.info("Switch model to deploy modality.")
 
-    def infer(self, conf_thres, iou_thres, classes, agnostic_nms, max_det, save_dir, save_txt, save_img, hide_labels, hide_conf, view_img=True, use_only_result=False):
+    def infer(self, conf_thres, iou_thres, classes, agnostic_nms, max_det, save_dir, save_txt, save_img, hide_labels, hide_conf, view_img=True, use_only_result=False, use_yield = False):
         ''' Model Inference and results visualization '''
         vid_path, vid_writer, windows = None, None, []
         fps_calculator = CalcFPS()
@@ -94,7 +94,6 @@ class Inferer:
                 # check image and font
                 assert img_ori.data.contiguous, 'Image needs to be contiguous. Please apply to input images with np.ascontiguousarray(im).'
                 self.font_check()
-                print("det",det)
                 if len(det):
                     det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
                     for *xyxy, conf, cls in reversed(det):
@@ -153,7 +152,6 @@ class Inferer:
                             save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
                             vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                         vid_writer.write(img_src)
-            print("det",det)
             for detected_element in det:
                 *xyxy, conf, cls = detected_element
                 class_name = self.class_names[int(cls)]
@@ -167,6 +165,99 @@ class Inferer:
                 }
                 res.append(element)
         return res
+
+    def infer_generator(self, conf_thres, iou_thres, classes, agnostic_nms, max_det, save_dir, save_txt, save_img, hide_labels, hide_conf, view_img=True, use_only_result=False):
+        ''' Model Inference and results visualization '''
+        try:
+            vid_path, vid_writer, windows = None, None, []
+            fps_calculator = CalcFPS()
+            # for i in range(10000):
+            i = 0
+            for img_src, img_path, vid_cap in self.files:
+            # for img_src in self.files:
+                # yield i
+                # i+=1
+                res = []
+                img, img_src = self.precess_image(img_src, self.img_size, self.stride, self.half)
+                img = img.to(self.device)
+                if len(img.shape) == 3:
+                    img = img[None]
+                    # expand for batch dim
+                t1 = time.time()
+                pred_results = self.model(img)
+                det = non_max_suppression(pred_results, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
+                t2 = time.time()
+
+                # Create output files in nested dirs that mirrors the structure of the images' dirs
+                if not use_only_result:
+                    rel_path = osp.relpath(osp.dirname(img_path), osp.dirname(self.source))
+                    if save_img or save_txt:
+                        save_path = osp.join(save_dir, rel_path, osp.basename(img_path))  # im.jpg
+                        txt_path = osp.join(save_dir, rel_path, osp.splitext(osp.basename(img_path))[0])
+                        os.makedirs(osp.join(save_dir, rel_path), exist_ok=True)
+
+                    gn = torch.tensor(img_src.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+                    img_ori = img_src.copy()
+
+                    # check image and font
+                    assert img_ori.data.contiguous, 'Image needs to be contiguous. Please apply to input images with np.ascontiguousarray(im).'
+                    self.font_check()
+                    if len(det):
+                        det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
+                        for *xyxy, conf, cls in reversed(det):
+                            if save_txt:  # Write to file
+                                xywh = (self.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+                                line = (cls, *xywh, conf)
+                                with open(txt_path + '.txt', 'a') as f:
+                                    f.write(('%g ' * len(line)).rstrip() % line + '\n')
+
+                            if save_img:
+                                class_num = int(cls)  # integer class
+                                label = None if hide_labels else (self.class_names[class_num] if hide_conf else f'{self.class_names[class_num]} {conf:.2f}')
+
+                                self.plot_box_and_label(img_ori, max(round(sum(img_ori.shape) / 2 * 0.003), 2), xyxy, label, color=self.generate_colors(class_num, True))
+
+                        img_src = np.asarray(img_ori)
+
+                    # FPS counter
+                    fps_calculator.update(1.0 / (t2 - t1))
+                    avg_fps = fps_calculator.accumulate()
+
+                    if self.files.type == 'video':
+                        self.draw_text(
+                            img_src,
+                            f"FPS: {avg_fps:0.1f}",
+                            pos=(20, 20),
+                            font_scale=1.0,
+                            text_color=(204, 85, 17),
+                            text_color_bg=(255, 255, 255),
+                            font_thickness=2,
+                        )
+
+                    if view_img:
+                        if img_path not in windows:
+                            windows.append(img_path)
+                            cv2.namedWindow(str(img_path), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+                            cv2.resizeWindow(str(img_path), img_src.shape[1], img_src.shape[0])
+                        cv2.imshow(str(img_path), img_src)
+                        cv2.waitKey(1)  # 1 millisecond
+
+                for detected_element in det:
+                    *xyxy, conf, cls = detected_element
+                    class_name = self.class_names[int(cls)]
+                    element = {
+                        "class_name":class_name,
+                        "x1":float(xyxy[0]),
+                        "y1":float(xyxy[1]),
+                        "x2":float(xyxy[2]),
+                        "y2":float(xyxy[3]),
+                        "conf":float(conf)
+                    }
+                    res.append(element)
+                yield res
+        finally:
+            self.files.stop()
+    
     @staticmethod
     def precess_image(img_src, img_size, stride, half):
         '''Process image before image inference.'''

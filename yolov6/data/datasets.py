@@ -19,6 +19,9 @@ import torch
 from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import Dataset
 from tqdm import tqdm
+import time
+
+import threading
 
 from .data_augment import (
     augment_hsv,
@@ -596,7 +599,7 @@ class TrainValDataset(Dataset):
 class LoadData:
     def __init__(self, path):
         if type(path)!=bytes:
-            webcam = path.isnumeric() or path.endswith('.txt') or path.lower().startswith(
+            webcam =path.isnumeric() or path.endswith('.txt') or path.lower().startswith(
             ('rtsp://', 'rtmp://', 'http://', 'https://'))
             if not webcam:
                 p = str(Path(path).resolve())  # os-agnostic absolute path
@@ -634,34 +637,45 @@ class LoadData:
         self.count = 0
         return self
     def __next__(self):
-        if self.count == self.nf:
-            raise StopIteration
         path = self.files[self.count]
-        if self.checkext(path) == 'video':
-            self.type = 'video'
-            ret_val, img = self.cap.read()
-            while not ret_val:
-                self.count += 1
-                self.cap.release()
-                if self.count == self.nf:  # last video
-                    raise StopIteration
-                path = self.files[self.count]
-                self.add_video(path)
-                ret_val, img = self.cap.read()
-        else:
-            # Read image
-            self.count += 1
-            if type(path) == bytes:
-                nparray = np.frombuffer(path,dtype=np.uint8) 
-                img = cv2.imdecode(nparray,cv2.IMREAD_COLOR)  # BGR
-            else:
-                img = cv2.imread(path)  # BGR
+        self.type = 'video'
+        img = None
+        while img is None:
+            img = self.cap.frame
+            # ret,img = self.cap.camera.retrieve()
         return img, path, self.cap
+
+        #return cv2.imread("5e295a5_1666084008932-simonbercy.jpg")
+
+    def gen(self):
+        while True:
+            img = self.cap.frame
+            yield img
+
     def add_video(self, path):
         self.frame = 0
-        self.cap = cv2.VideoCapture(path)
-        self.cap.read()  # guarantee first frame
-        assert self.cap.isOpened(), f'Failed to open {path}'
-        self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.cap = TakeCameraLatestPictureThread(cv2.VideoCapture(path))
+        # self.cap.camera.read()  # guarantee first frame
+        # assert self.cap.camera.isOpened(), f'Failed to open {path}'
+        # self.frames = int(self.cap.camera.get(cv2.CAP_PROP_FRAME_COUNT))
+    def stop(self):
+        if self.cap is not None:
+            self.cap.stop = True
     def __len__(self):
         return self.nf  # number of files
+
+class TakeCameraLatestPictureThread(threading.Thread):
+    def __init__(self, camera):
+        self.camera = camera
+        self.frame = None
+        self.stop = False
+        super().__init__()
+        # Start thread
+        self.daemon = True
+        self.start()
+    def run(self):
+        while not self.stop:
+            ret, self.frame = self.camera.read()
+            # self.camera.grab()
+            # pass
+        self.camera.release()
