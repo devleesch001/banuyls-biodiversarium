@@ -1,3 +1,5 @@
+from builtins import str
+
 from flask import Flask, request, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Column, Integer, Text, update, delete, select
@@ -80,12 +82,23 @@ def analyzeTablet():
 
 
 class Species(db.Model):
-    id = Column(Integer, primary_key=True)
-    scientific_name = Column(String(50))
-    name = Column(String(50))
-    family = Column(String(50))
-    description = Column(Text)
-    s_type = Column(String(20))
+    id = db.Column(Integer, primary_key=True)
+    scientific_name = db.Column(String(50))
+    name = db.Column(String(50))
+    family = db.Column(String(50))
+    description = db.Column(Text)
+    s_type = db.Column(String(20))
+
+    def __init__(self, scientific_name: str, name: str, family: str, description: str, s_type: str):
+        self.scientific_name = scientific_name
+        self.name = name
+        self.family = family
+        self.description = description
+        self.s_type = s_type
+
+    def toDict(self):
+        return {"scientific_name": self.scientific_name, "name": self.name, "family": self.family,
+                "description": json.loads(self.description), "type": self.s_type}
 
     def __repr__(self):
         return f'<Species {self.scientific_name}>'
@@ -111,23 +124,23 @@ def toList(scalar):
     return list
 
 
-@app.route('/api')
+@app.route('/api', methods=["GET"])
 def hello_world():  # put application's code here
     return OK("hello world!")
 
 
-@app.route("/api/species")
+@app.route("/api/species", methods=["GET"])
 def species_list():
-    species = db.session.execute(
-        select(Species).order_by(Species.scientific_name)).scalars()
-    return OK(toList(species))
+    species = Species.query.all()
+    species_serialized = [element.toDict() for element in species]
+
+    return OK(species_serialized)
 
 @app.route("/api/species/<s_name>")
 def speccy(s_name):
     species = db.session.execute(
         db.select(Species).where(Species.scientific_name == s_name)).scalars()
     return OK(toList(species))
-
 
 @app.route("/api/species_create", methods=["POST"])
 def species_create():
