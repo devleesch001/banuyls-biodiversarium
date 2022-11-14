@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+    webserver:
+        image: nginx:latest
+        ports:
+            - "80:80"
+            - "443:443"
+        restart: always
+        volumes:
+            - ./nginx/conf/dev:/etc/nginx/conf.d/:ro
+            - ./certbot/www:/var/www/certbot/:ro
+#            - ./certbot/conf/:/etc/nginx/ssl/:ro
+        networks:
+            - fish-hub-network
+            - back-fish-network
+
+    fish-hub:
+        build: ./web-appli
+        restart: always
+        networks:
+            - fish-hub-network
+
+    back-fish:
+        build: ./back-fish
+        restart: always
+        networks:
+            - back-fish-network
+
+networks:
+    fish-hub-network:
+        external: false
+    back-fish-network:
+        external: false
+    default:
+        external: false
