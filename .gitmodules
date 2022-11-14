@@ -10,3 +10,7 @@
 	path = analyze-fish-remork
 	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/analyze-fish-remork.git
 	branch = main
+[submodule "biodiversarium-bornfront"]
+	path = biodiversarium-bornfront
+	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/biodiversarium-bornfront.git
+	branch = main
