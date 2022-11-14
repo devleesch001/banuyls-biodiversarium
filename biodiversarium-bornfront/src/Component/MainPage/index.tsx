@@ -14,9 +14,19 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
         setIsHomePage(false);
     }
 
+    const fishResultHandler = (value: {
+        id: number,
+        scientific_name: string,
+        name: string,
+        family: string,
+        description: { fr: string },
+        s_type: string,
+    }[]): void => {
+        fishResultHandler(value);
+    };
+
     return <Grid container spacing={1}>
-        
-        
+
         {isHomePage ?
      
             <Grid item xs={12}>
@@ -42,7 +52,31 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
 
                 <Grid item xs={8}
                 style={{backgroundColor:"rgba(228, 233, 237,0.5)" }}>
-                    <Cam/>
+                    <Cam
+                    fishResult={[
+                        {
+                                id: 1,
+                                scientific_name: 'scientific_name',
+                                name: 'poisson 1',
+                                family: 'family',
+                                description: {
+                                    fr: 'DESCRIPTION'
+                                },
+                                s_type: 'string'
+                        },
+                        {
+                            id: 2,
+                            scientific_name: 'scientific_name',
+                            name: 'poisson 2',
+                            family: 'family',
+                            description: {
+                                fr: 'DESCRIPTION'
+                            },
+                            s_type: 'string'
+                        }
+                    ]}
+                    setFishResult={fishResultHandler}
+                    />
                 </Grid>
 
                 <Grid item xs={4} style={{backgroundColor:"rgba(228, 233, 237,0.5)" }}>
