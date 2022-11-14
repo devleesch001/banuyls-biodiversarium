@@ -10,10 +10,15 @@ services:
         volumes:
             - ./nginx/conf/dev:/etc/nginx/conf.d/:ro
             - ./certbot/www:/var/www/certbot/:ro
-#            - ./certbot/conf/:/etc/nginx/ssl/:ro
+            - ./certbot/conf/:/etc/nginx/ssl/:ro
+        depends_on:
+            - fish-hub
+            - back-fish
+            - ia
         networks:
             - fish-hub-network
             - back-fish-network
+            - analyze-fish-remork-network
 
     fish-hub:
         build: ./web-appli
@@ -27,10 +32,18 @@ services:
         networks:
             - back-fish-network
 
+    ia:
+        build: ./analyze-fish-remork
+        restart: always
+        networks:
+            - analyze-fish-remork-network
+
 networks:
     fish-hub-network:
         external: false
     back-fish-network:
+        external: false
+    analyze-fish-remork-network:
         external: false
     default:
         external: false
