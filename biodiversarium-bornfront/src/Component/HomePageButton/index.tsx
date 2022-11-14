@@ -32,7 +32,6 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
                 zIndex: -1
             }}
         >
-            <source src={require('../../IMG-8758.mp4')} type="video/mp4"/>
         </video>
                 <Logo/>
         <Button

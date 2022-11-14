@@ -1,6 +1,5 @@
 import React from 'react'
 import { useRef } from 'react';
-import html2canvas from 'html2canvas';
 
 interface camProps {
 
@@ -28,7 +27,7 @@ const Cam: React.FC<camProps> = ({}) => {
         return (
                 
                    <>
-                        <video crossOrigin="anonymous" src="http://localhost:8000/video"  controls={false} onClick={onSelectFish}
+                        <video crossOrigin="anonymous" src="http://10.3.3.61:8000/video"  controls={false} onClick={onSelectFish}
                         autoPlay={true} muted style={{backgroundColor: 'black' , width : '100%', height : '100%'}}
                         />
                    </>

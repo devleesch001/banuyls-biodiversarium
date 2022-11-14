@@ -6,9 +6,6 @@ import { useRef } from "react";
 import { text } from 'node:stream/consumers';
 import { Cam, MoreInfoButton, Logo, Description, MainPage } from './Component';
 import { Grid } from '@mui/material';
-import './IMG-8758.mp4'
-
-
 
 
 const root = ReactDOM.createRoot(
