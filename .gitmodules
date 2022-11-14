@@ -6,3 +6,7 @@
 	path = web-appli
 	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/web-appli.git
 	branch = main
+[submodule "analyze-fish-remork"]
+	path = analyze-fish-remork
+	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/analyze-fish-remork.git
+	branch = main
