@@ -1,8 +1,9 @@
 import React from 'react'
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ResultTable from '../Table';
 import { Grid } from '@mui/material';
+import { cameraChoiceEnum } from '../HomePageButton';
 
 interface CamProps {
         fishResult: {
@@ -39,12 +40,14 @@ interface CamProps {
                 }[],
                 fishes: {}
         }): void;
+
+        cameraChoice: cameraChoiceEnum;
 }
 
 const Cam: React.FC<CamProps> = (Props) => {
 
         const [counter, setCounter] = useState(0);
-        const { fishResult, setFishResult } = Props;
+        const { fishResult, setFishResult, cameraChoice } = Props;
 
         const displayVideo = () => {
                 let video = document.querySelector('video');
@@ -104,8 +107,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 })
                                 .catch((err) => setFishResult({ detections: [], fishes: {} }));
                         }
-                } 
-                
+                }
         };
         
         return (       
@@ -125,7 +127,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                         <Grid item xs={12}>                                
                                 <video 
                                         crossOrigin="anonymous"
-                                        src="http://10.3.3.61:8000/video"
+                                        src={cameraChoice.toString()}
                                         controls={false}
                                         autoPlay={true}
                                         muted

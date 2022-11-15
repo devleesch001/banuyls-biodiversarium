@@ -6,7 +6,8 @@
 require('dotenv').config();
 
 const port = process.env.PORT || 8000
-const url = process.env.URL || 'http://localhost:8080/stream.ogg'
+const inUrl = process.env.IN_URL || 'http://localhost:8080/in.ogg'
+const outUrl = process.env.OUT_URL || 'http://localhost:8080/out.ogg'
 const express = require('express');
 const axios = require('axios');
 const app = express();
@@ -14,8 +15,19 @@ const cors = require('cors');
 
 app.use(cors());
 
-app.get('/video', (req, res) => {
-    axios.get(url, {
+app.get('/in', (req, res) => {
+    axios.get(inUrl, {
+        responseType: 'stream'
+    })
+    .then((stream) => {
+        res.writeHead(stream.status, stream.headers);
+        stream.data.pipe(res);
+    })
+    .catch(err => console.error(err.message));
+});
+
+app.get('/out', (req, res) => {
+    axios.get(outUrl, {
         responseType: 'stream'
     })
     .then((stream) => {

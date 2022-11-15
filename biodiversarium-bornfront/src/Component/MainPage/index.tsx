@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { Grid } from '@mui/material';
 import { Cam, Logo, Description, HomePageButton } from '../'
+import { cameraChoiceEnum } from '../HomePageButton';
 
 interface mainPageProps {
-
 }
 
 const MainPage: React.FC<mainPageProps> = ({ }) => {
@@ -52,12 +52,18 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
         setFishResult(value);
     };
 
+    const [cameraChoice, setCameraChoice] = useState<cameraChoiceEnum>(cameraChoiceEnum.OUT);
+
+    const cameraChoiceHandler = (value: cameraChoiceEnum) => {
+        setCameraChoice(value);
+    };
+
     return <Grid container spacing={1}>
 
         {isHomePage ?
      
             <Grid item xs={12}>
-                <HomePageButton onClickCommencer={onClickCommencer} />
+                <HomePageButton onCameraChoice={cameraChoiceHandler} onClickCommencer={onClickCommencer} />
             </Grid>
             :
             <>                
@@ -69,6 +75,7 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
                 <Grid item xs={12}
                 style={{backgroundColor:"rgba(228, 233, 237,0.5)" }}>
                     <Cam
+                    cameraChoice={cameraChoice}
                     fishResult={fishResult}
                     setFishResult={fishResultHandler}
                     />
