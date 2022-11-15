@@ -6,21 +6,39 @@ import { Grid } from '@mui/material';
 
 interface CamProps {
         fishResult: {
-                id: number,
-                scientific_name: string,
-                name: string,
-                family: string,
-                description: { fr: string },
-                s_type: string,
-        }[];
+                detections: {
+                    certainty: number,
+                    detection: string,
+                    position: {
+                        bottomright: {
+                            x: number,
+                            y: number
+                        },
+                        topleft: {
+                            x: number,
+                            y: number
+                        }
+                    }
+                }[],
+                fishes: any
+        };
         setFishResult(value: {
-                id: number,
-                scientific_name: string,
-                name: string,
-                family: string,
-                description: { fr: string },
-                s_type: string,
-        }[]): void;
+                detections: {
+                    certainty: number,
+                    detection: string,
+                    position: {
+                        bottomright: {
+                            x: number,
+                            y: number
+                        },
+                        topleft: {
+                            x: number,
+                            y: number
+                        }
+                    }
+                }[],
+                fishes: {}
+        }): void;
 }
 
 const Cam: React.FC<CamProps> = (Props) => {
@@ -33,14 +51,13 @@ const Cam: React.FC<CamProps> = (Props) => {
                 let img = document.getElementById('videoDisplay') as HTMLImageElement;
                 if(video && img) {
                         let canvas = document.createElement('canvas');
-                        canvas.width = 800;
-                        canvas.height = 600;
+                        canvas.width = img.width;
+                        canvas.height = img.height;
         
                         const ctx = canvas.getContext('2d');
                         if(ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         img.src = canvas.toDataURL('image/jpeg');
                 }
-                else console.log('error');
         };
         
         useEffect(() => {
@@ -69,7 +86,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                                 const dataUrl = canvas.toDataURL("image/png");
                                 // send image to server
-                                axios.post('', {//http://10.3.1.37:5000/api/tablet/analyze
+                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', {//http://10.3.1.37:5000/api/tablet/analyze
                                         content: dataUrl
                                 })
                                 .then((res) => {        
@@ -79,14 +96,13 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                 name: string;
                                                 family: string;
                                                 description: {
-                                                    fr: string;
+                                                        fr: string;
                                                 };
                                                 s_type: string;
-                                            }[];
-                                                                
-                                        setFishResult(result);
+                                        }[];
+                                        setFishResult({ detections: [], fishes: {} });
                                 })
-                                .catch((err) => console.log(err));
+                                .catch((err) => setFishResult({ detections: [], fishes: {} }));
                         }
                 } 
                 
@@ -98,19 +114,18 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 <img id="videoDisplay" style={{backgroundColor: 'black', width: '100%', height: `${window.screen.width/3}px`}} onClick={onSelectFish}></img>
                         </Grid>
 
-
                         <Grid item xs={2} sm={2} md={2} lg={2} xl={2} id='canvas'>
                                 <canvas></canvas>
                         </Grid>
 
                         <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
-                                <ResultTable fishResult={[]}/>
+                                <ResultTable fishResult={fishResult}/>
                         </Grid>
 
                         <Grid item xs={12}>                                
                                 <video 
                                         crossOrigin="anonymous"
-                                        src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.720p.webm"
+                                        src="http://10.3.3.61:8000/video"
                                         controls={false}
                                         autoPlay={true}
                                         muted

@@ -8,14 +8,23 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
 interface ResultTableProps {
-    fishResult: {
-            id: number,
-            scientific_name: string,
-            name: string,
-            family: string,
-            description: { fr: string },
-            s_type: string,
-    }[];
+  fishResult: {
+    detections: {
+        certainty: number,
+        detection: string,
+        position: {
+            bottomright: {
+                x: number,
+                y: number
+            },
+            topleft: {
+                x: number,
+                y: number
+            }
+        }
+    }[],
+    fishes: any
+  };
 }
 
 const ResultTable: React.FC<ResultTableProps> = (Props) => {
@@ -33,16 +42,16 @@ const ResultTable: React.FC<ResultTableProps> = (Props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {fishResult.map((result) => (
+          {fishResult.detections.map((result) => (
             <TableRow
-              key={result.id}
+              key={fishResult?.fishes[result?.detection]?.id}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
-              <TableCell component="th" scope="row">{result.name}</TableCell>
-              <TableCell align="right">{result.family}</TableCell>
-              <TableCell align="right">{result.description.fr}</TableCell>
-              <TableCell align="right">{result.s_type}</TableCell>
-              <TableCell align="right">{result.s_type}</TableCell>
+              <TableCell component="th" scope="row">{fishResult?.fishes[result?.detection]?.name}</TableCell>
+              <TableCell align="right">{fishResult?.fishes[result?.detection]?.family}</TableCell>
+              <TableCell align="right">{fishResult?.fishes[result?.detection]?.description.fr}</TableCell>
+              <TableCell align="right">{fishResult?.fishes[result?.detection]?.s_type}</TableCell>
+              <TableCell align="right">{fishResult?.fishes[result?.detection]?.s_type}</TableCell>
             </TableRow>
           ))}
         </TableBody>

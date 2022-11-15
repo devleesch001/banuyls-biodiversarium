@@ -9,19 +9,47 @@ interface mainPageProps {
 const MainPage: React.FC<mainPageProps> = ({ }) => {
 
     const [isHomePage, setIsHomePage] = useState(true);
+    const [fishResult, setFishResult] = useState<{
+        detections: {
+            certainty: number,
+            detection: string,
+            position: {
+                bottomright: {
+                    x: number,
+                    y: number
+                },
+                topleft: {
+                    x: number,
+                    y: number
+                }
+            }
+        }[],
+        fishes: any
+    }>({ detections: [], fishes: {} });
+    
+
     const onClickCommencer = () => {
         setIsHomePage(false);
     }
 
     const fishResultHandler = (value: {
-        id: number,
-        scientific_name: string,
-        name: string,
-        family: string,
-        description: { fr: string },
-        s_type: string,
-    }[]): void => {
-        fishResultHandler(value);
+        detections: {
+            certainty: number,
+            detection: string,
+            position: {
+                bottomright: {
+                    x: number,
+                    y: number
+                },
+                topleft: {
+                    x: number,
+                    y: number
+                }
+            }
+        }[],
+        fishes: any
+    }): void => {
+        setFishResult(value);
     };
 
     return <Grid container spacing={1}>
@@ -41,7 +69,7 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
                 <Grid item xs={12}
                 style={{backgroundColor:"rgba(228, 233, 237,0.5)" }}>
                     <Cam
-                    fishResult={[]}
+                    fishResult={fishResult}
                     setFishResult={fishResultHandler}
                     />
                 </Grid>            
