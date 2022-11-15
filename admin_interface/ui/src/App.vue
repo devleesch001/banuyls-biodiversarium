@@ -1,8 +1,8 @@
 <template>
   <v-app style="background-color: #e6e6e6;">
-    <v-app-bar dense color="green">
+    <v-app-bar dense color="primary">
       <v-toolbar-title style="font-weight: bold; font-size:1.5em">
-        <v-icon style="margin-right:20px">mdi-desktop-classic</v-icon>
+        <v-icon style="margin-right:20px">mdi-diving-helmet</v-icon>
         Seaquarium admin pannel
       </v-toolbar-title>
       <v-spacer></v-spacer>

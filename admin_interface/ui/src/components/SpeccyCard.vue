@@ -1,19 +1,28 @@
 <template>
     <v-card class="mx-auto speccy-card" 
         outlined
-        :color="randomColor">
+        :color="allColors[type]">
         <v-toolbar
         style="padding-left:2%; background-color: transparent;">
-            <v-icon style="margin-right:10px;">mdi-fish</v-icon>
+            <v-icon style="margin-right:10px;">mdi-{{allIcons[type]}}</v-icon>
             <v-card-title>{{name}}</v-card-title>
-            <v-spacer></v-spacer>
-            <v-img 
+            <v-spacer v-if="image"></v-spacer>
+            <v-img v-if="image"
                 aspect-ratio="1"
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSbRnBlrAbDhCz9ArlqOGVai4V0vXhIDGOOIQ&usqp=CAU"
+                :src="image"
                 cover>
             </v-img>
+            <div v-else class="speccy-subtitle">
+                <div class="speccy-scientific">
+                    {{s_name}}
+                </div>
+                <div> | </div>
+                <div>
+                    {{family}}
+                </div>
+            </div>
         </v-toolbar>
-        <div class="speccy-subtitle">
+        <div v-if="image" class="speccy-subtitle">
             <div class="text-subtitle-1 speccy-scientific">
                 {{s_name}}
             </div>
@@ -24,11 +33,20 @@
         </div>
         <v-divider class="mx-4"></v-divider>
         <v-card-text>
-            {{description}}
+            <p style="font-size: 1.4em; font-weight: bold; margin-bottom: 20px;">Description</p>
+            <v-expansion-panels variant="popout">
+                <template v-for="(value, key) of description" :key="key">
+                    <v-expansion-panel
+                    v-if="value!=null && value.length > 0"
+                    :title="key"
+                    :text="value">
+                    </v-expansion-panel>
+                </template>
+            </v-expansion-panels>
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn icon style="background-color: white;" elevation="3">
+            <v-btn icon style="background-color: white;" elevation="3" @click="modifyDialog=true">
                 <v-icon color="blue">mdi-lead-pencil</v-icon>
             </v-btn>
             <v-btn icon style="background-color: white;" elevation="3" @click="deleteConfirm=true">
@@ -46,41 +64,74 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <SpeccyDialogVue :open="modifyDialog" :onClose="()=>modifyDialog=false" :OK="update" :default="{            
+            name,
+            s_name,
+            description,
+            family,
+            type,
+            image,
+            id:s_id
+        }"></SpeccyDialogVue>
     </v-card>
 </template>
 
 <script>
+import SpeccyDialogVue from './SpeccyDialog.vue'
+import { BASE_API_URL, TYPES_COLOR, TYPES_ICON } from '@/types/AppConstants'
+
 export default {
     props:{
         name:String,
         s_name:String,
-        description:String,
+        description:Object,
         family:String,
-        s_id:Number
+        type:String,
+        s_id:Number,
+        image:String
     },
-    data: ()=>({
-        deleteConfirm:false
-    }),
+    components:{
+        SpeccyDialogVue
+    },
+    data(){
+        return {
+            deleteConfirm:false,
+            modifyDialog:false,
+            allIcons:TYPES_ICON,
+            allColors:TYPES_COLOR
+        }
+    },
     methods:{
         delete(){
-            fetch('http://192.168.170.89:5000/api/species_delete/'+this.s_id, {method:"DELETE"})
+            fetch(BASE_API_URL+'api/species_delete/'+this.s_id, {method:"DELETE"})
             .catch((err)=>{
                 console.log(err)
             })
             .then(()=>{
                 this.bus.emit("speccy_deleted", this.name)
             })
-        }
-    },
-    computed:{
-        randomColor(){
-            let colors = [
-                "#8fffaa",
-                "#ffcc5a",
-                "#00ab0f",
-                "#bd9dff"
-            ]
-            return colors[Math.floor(Math.random()*colors.length)]
+            this.deleteConfirm=false;
+        },
+        async update(speccy)
+        {                   
+            let headers = new Headers();
+            headers.append("Content-type", "application/json")
+            headers.append("Access-Control-Allow-Origin", "*")
+
+            let init = { method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(speccy)};
+
+            var request = new Request(BASE_API_URL+'api/species_update', init);
+
+            fetch(request,init)
+            .catch((err)=>{
+                console.log(err)
+            })
+            .then(()=>{
+                this.bus.emit("speccy_updated", this.name)
+            })
+            this.modifyDialog = false;
         }
     }
 }
@@ -93,14 +144,17 @@ export default {
 
     .speccy-subtitle{
         display:flex;
-        justify-content: left;
-        width:300px;
+        justify-content: center;
+        width:60%;
+        position:relative;
+        right:0;
     }
 
     .speccy-subtitle > div{
         font-size: 0.9em !important;
         flex:1 1 auto;
         text-align: center;
+        word-wrap: normal;
     }
 
     .speccy-scientific{
