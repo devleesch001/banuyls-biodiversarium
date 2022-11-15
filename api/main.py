@@ -174,15 +174,16 @@ def speccy(name):
     return OK(toList(species))
 
 
-@app.route("/api/species/<tmp_name>")
+@app.route("/api/species/auto_cmp/<tmp_name>")
 def autocmpl(tmp_name):
     
-    # result = db.session.query(Species.name).filter(Species.name.like('%'+tmp_name+'%'))
-    # return OK(toList(result))
+    result = db.session.query(Species).filter(Species.name.like('%'+tmp_name+'%'))
 
-    species = db.session.execute(
-        db.select(Species.name).where(tmp_name in Species.name)).scalars()
-    return OK(toList(species))
+    return OK(toList(result))
+
+    # species = db.session.execute(
+    #     db.select(Species.name).where(tmp_name in Species.name)).scalars()
+    # return OK(toList(species))
 
 
 @app.route("/api/species_create", methods=["POST"])
