@@ -1,6 +1,7 @@
 import React from 'react'
 import { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
+import ResultTable from '../Table';
 
 interface CamProps {
         fishResult: {
@@ -65,11 +66,11 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                                 const dataUrl = canvas.toDataURL("image/png");
                                 // send image to server
-                                axios.post('', {
-                                        image: dataUrl
+                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', {
+                                        content: dataUrl
                                 })
                                 .then((res) => {        
-                                        const result = (res as unknown) as {
+                                        const result = (res?.data as unknown) as {
                                                 id: number;
                                                 scientific_name: string;
                                                 name: string;
@@ -91,33 +92,17 @@ const Cam: React.FC<CamProps> = (Props) => {
                    <>
                         <div id="result">
                                 <canvas></canvas>
-                                <table>
-                                        <thead>
-                                                <tr>
-                                                        <th>Nom scientifique</th>
-                                                        <th>Nom</th>
-                                                        <th>Famille</th>
-                                                        <th>Description</th>
-                                                        <th>Type</th>
-                                                </tr>
-                                        </thead>
-                                        {fishResult.map(result =>
-                                        <tbody key={result.id}>
-                                                <tr>
-                                                        <td>{result.scientific_name}</td>
-                                                        <td>{result.name}</td>
-                                                        <td>{result.family}</td>
-                                                        <td>{result.description.fr}</td>
-                                                        <td>{result.s_type}</td>
-                                                </tr>
-                                        </tbody>
-                                        )}
-                                </table>
+                                <ResultTable fishResult={[]}/>
                                 
                         </div>
                         <img id="videoDisplay" style={{backgroundColor: 'black', width: 800, height: 600}} onClick={onSelectFish} width={800}></img>
-                        <video crossOrigin="anonymous" src="http://localhost:8000/video"  controls={false}
-                        autoPlay={true} muted style={{visibility: 'hidden', backgroundColor: 'black' , width : '100%', height : '100%'}}
+                        <video 
+                        crossOrigin="anonymous"
+                        src="http://localhost:8000/video"
+                        controls={false}
+                        autoPlay={true}
+                        muted
+                        style={{visibility: 'hidden', backgroundColor: 'black' , width : '100%', height : '100%'}}
                         />
                    </>
         );

@@ -53,28 +53,7 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
                 <Grid item xs={8}
                 style={{backgroundColor:"rgba(228, 233, 237,0.5)" }}>
                     <Cam
-                    fishResult={[
-                        {
-                                id: 1,
-                                scientific_name: 'scientific_name',
-                                name: 'poisson 1',
-                                family: 'family',
-                                description: {
-                                    fr: 'DESCRIPTION'
-                                },
-                                s_type: 'string'
-                        },
-                        {
-                            id: 2,
-                            scientific_name: 'scientific_name',
-                            name: 'poisson 2',
-                            family: 'family',
-                            description: {
-                                fr: 'DESCRIPTION'
-                            },
-                            s_type: 'string'
-                        }
-                    ]}
+                    fishResult={[]}
                     setFishResult={fishResultHandler}
                     />
                 </Grid>
