@@ -41,7 +41,7 @@
                     <div style="display:flex; justify-content: center; margin-bottom:30px;">
                         <v-file-input label="Speccy image" @change="loadImage"></v-file-input>
                     </div>
-                    <v-img v-if="newSpeccy.image.length" :src="newSpeccy.image" ></v-img>
+                    <v-img v-if="newSpeccy.image" :src="newSpeccy.image" ></v-img>
 
                     <v-select
                     label="Type"
@@ -118,7 +118,7 @@ export default {
                     fr:null,
                     en:null
                 },
-                image:[],
+                image:null,
                 type:Object.keys(TYPES_ICON)[0]
             },
             langs:['fr', 'en'],
