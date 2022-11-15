@@ -1,6 +1,7 @@
 {
   "name": "biodiversarium-bornfront",
   "version": "0.1.0",
+  "homepage": "/born",
   "private": true,
   "dependencies": {
     "@emotion/core": "^11.0.0",
@@ -46,6 +47,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "proxy": "http://localhost:8080"
+  }
 }
