@@ -23,6 +23,7 @@ interface CamProps {
 }
 
 const Cam: React.FC<CamProps> = (Props) => {
+
         const [counter, setCounter] = useState(0);
         const { fishResult, setFishResult } = Props;
 
@@ -38,6 +39,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                         if(ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         img.src = canvas.toDataURL('image/jpeg');
                 }
+                else console.log('error');
         };
         
         useEffect(() => {
@@ -62,7 +64,7 @@ const Cam: React.FC<CamProps> = (Props) => {
         
                         const ctx = canvas.getContext('2d');
         
-                        if (ctx && img) {
+                        if (ctx && img) {                              
                                 ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                                 const dataUrl = canvas.toDataURL("image/png");
                                 // send image to server
@@ -85,7 +87,8 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 })
                                 .catch((err) => console.log(err));
                         }
-                }
+                } 
+                
         };
         
         return (
