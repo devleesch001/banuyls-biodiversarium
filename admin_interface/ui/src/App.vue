@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: #e6e6e6;">
+  <v-app>
     <v-app-bar dense color="primary">
       <v-toolbar-title style="font-weight: bold; font-size:1.5em">
         <v-icon style="margin-right:20px">mdi-diving-helmet</v-icon>
@@ -48,7 +48,7 @@ export default {
   computed:{
     color(){   
       switch (this.menuselection) {
-          case 0: return '#c4d9ff'
+          case 0: return '#9CADCC'
           case 1: return 'teal'
           case 2: return 'brown'
           case 3: return 'indigo'

@@ -6,8 +6,8 @@ const TYPES_ICON = {
 }
 
 const TYPES_COLOR = {
-    moving:"blue",
-    fixed:"#ec2a2a",
+    moving:"#bbfffa",
+    fixed:"#ffe28c",
 }
 
 export {BASE_API_URL, TYPES_ICON, TYPES_COLOR}

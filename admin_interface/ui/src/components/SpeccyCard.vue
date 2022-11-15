@@ -16,18 +16,18 @@
                 <div class="speccy-scientific">
                     {{s_name}}
                 </div>
-                <div> | </div>
+                <v-divider vertical></v-divider>
                 <div>
                     {{family}}
                 </div>
             </div>
         </v-toolbar>
         <div v-if="image" class="speccy-subtitle">
-            <div class="text-subtitle-1 speccy-scientific">
+            <div  style="margin-right:5%;" class="text-subtitle-1 speccy-scientific">
                 {{s_name}}
             </div>
-            <div> | </div>
-            <div>
+            <v-divider vertical></v-divider>
+            <div style="margin-left:5%;">
                 {{family}}
             </div>
         </div>
