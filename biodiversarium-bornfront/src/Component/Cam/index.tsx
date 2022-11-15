@@ -2,6 +2,7 @@ import React from 'react'
 import { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import ResultTable from '../Table';
+import { Grid } from '@mui/material';
 
 interface CamProps {
         fishResult: {
@@ -91,23 +92,32 @@ const Cam: React.FC<CamProps> = (Props) => {
                 
         };
         
-        return (
-                   <>
-                        <div id="result">
+        return (       
+                   <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                                <img id="videoDisplay" style={{backgroundColor: 'black', width: '100%', height: `${window.screen.width/3}px`}} onClick={onSelectFish}></img>
+                        </Grid>
+
+
+                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2} id='canvas'>
                                 <canvas></canvas>
+                        </Grid>
+
+                        <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
                                 <ResultTable fishResult={[]}/>
-                                
-                        </div>
-                        <img id="videoDisplay" style={{backgroundColor: 'black', width: '100%', height: '100%'}} onClick={onSelectFish}></img>
-                        <video 
-                        crossOrigin="anonymous"
-                        src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.720p.webm"
-                        controls={false}
-                        autoPlay={true}
-                        muted
-                        style={{backgroundColor: 'black' , width : '1px', height : '1px'}}
-                        />
-                   </>
+                        </Grid>
+
+                        <Grid item xs={12}>                                
+                                <video 
+                                        crossOrigin="anonymous"
+                                        src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.720p.webm"
+                                        controls={false}
+                                        autoPlay={true}
+                                        muted
+                                        style={{backgroundColor: 'black' , width : '1px', height : '1px'}}
+                                        />
+                        </Grid>
+                   </Grid>
         );
 };
 
