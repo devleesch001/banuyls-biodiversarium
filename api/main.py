@@ -2,7 +2,7 @@ from builtins import str
 
 from flask import Flask, request, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Column, Integer, Text, update, delete, select
+from sqlalchemy import String, Column, Integer, Text, BLOB, update, delete, select
 import json
 import argparse
 from sqlalchemy.sql import func
@@ -55,32 +55,6 @@ def checks(request_data):
 
     return (True, contentDecode)
 
-
-@app.route("/api/mobile/analyze", methods=["POST"])
-def analyzeMobile():
-    check = checks(request.json)
-    if check[0]:
-        contentDecode = check[1]
-        if MOBILE_AI == "IMERIR":
-            results = imerir_controller.get_labels(contentDecode)
-        """else:
-            results = vision_controller.get_labels(contentDecode)"""
-    else:
-        return check[1]
-    return OK(results)
-
-
-@app.route("/api/tablet/analyze", methods=["POST"])
-def analyzeTablet():
-    check = checks(request.json)
-    if check[0]:
-        contentDecode = check[1]
-        results = imerir_controller.get_labels(contentDecode)
-    else:
-        return check[1]
-    return OK(results)
-
-
 class Species(db.Model):
     id = db.Column(Integer, primary_key=True)
     scientific_name = db.Column(String(50))
@@ -88,30 +62,40 @@ class Species(db.Model):
     family = db.Column(String(50))
     description = db.Column(Text)
     s_type = db.Column(String(20))
+    image = db.Column(String(999))
 
-    def __init__(self, scientific_name: str, name: str, family: str, description: str, s_type: str):
+    def __init__(self, scientific_name: str, image:str, name: str, family: str, description: str, s_type: str):
         self.scientific_name = scientific_name
         self.name = name
         self.family = family
-        self.description = description
+        self.image=image
+        self.description = json.dumps(description) if description is not None else None
         self.s_type = s_type
 
     def toDict(self):
-        return {"scientific_name": self.scientific_name, "name": self.name, "family": self.family,
-                "description": json.loads(self.description), "type": self.s_type}
+        return {
+            "s_name": self.scientific_name, 
+            "name": self.name, 
+            "family": self.family, 
+            "id":self.id,
+            "description": json.loads(self.description) if self.description is not None else None, 
+            "type": self.s_type,
+            "image":self.image
+        }    
+
+    def toDictPure(self):
+        return {
+            "scientific_name": self.scientific_name, 
+            "name": self.name, 
+            "family": self.family, 
+            "id":self.id,
+            "description": self.description, 
+            "s_type": self.s_type,
+            "image":self.image
+        }
 
     def __repr__(self):
         return f'<Species {self.scientific_name}>'
-
-    def json(self):
-        return {
-            "id":self.id,
-            "s_name":self.scientific_name,
-            "name":self.name,
-            "family":self.family,
-            "description":self.description,
-            "type":self.s_type
-        }
 
 
 with app.app_context():
@@ -120,9 +104,56 @@ with app.app_context():
 def toList(scalar):
     list = []
     for item in scalar:
-        list.append(item.json())
+        list.append(item.toDict())
     return list
 
+    
+@app.route("/api/mobile/analyze", methods=["POST"])
+def analyzeMobile():
+    check = checks(request.json)
+    res = {"detections":[], "fishes":{}}
+    if check[0]:
+        contentDecode = check[1]
+        if MOBILE_AI == "IMERIR":
+            results = imerir_controller.get_labels(contentDecode)
+        """else:
+            results = vision_controller.get_labels(contentDecode)"""    
+        made = []   
+        fishes = {}
+        for result in results:
+            if result["detection"] not in made:
+                made.append(result["detection"])
+                detail = toList(db.session.execute(
+                select(Species).where(Species.name == result["detection"])).scalars())
+                if(len(detail)):
+                    fishes[detail[0]["name"]] = detail[0]
+                    res["detections"].append(result)
+        res["fishes"] = fishes
+    else:
+        return check[1]
+    return OK(res)
+
+@app.route("/api/tablet/analyze", methods=["POST"])
+def analyzeTablet():
+    check = checks(request.json)
+    res = {"detections":[], "fishes":{}}
+    if check[0]:
+        contentDecode = check[1]
+        results = imerir_controller.get_labels(contentDecode)
+        made = []   
+        fishes = {}
+        for result in results:
+            if result["detection"] not in made:
+                made.append(result["detection"])
+                detail = toList(db.session.execute(
+                select(Species).where(Species.name == result["detection"])).scalars())
+                if(len(detail)):
+                    fishes[detail[0]["name"]] = detail[0]
+                    res["detections"].append(result)
+        res["fishes"] = fishes
+    else:
+        return check[1]
+    return OK(results)
 
 @app.route('/api', methods=["GET"])
 def hello_world():  # put application's code here
@@ -136,10 +167,10 @@ def species_list():
 
     return OK(species_serialized)
 
-@app.route("/api/species/<s_name>")
-def speccy(s_name):
+@app.route("/api/species/<name>")
+def speccy(name):
     species = db.session.execute(
-        db.select(Species).where(Species.scientific_name == s_name)).scalars()
+        select(Species).where(Species.name == name)).scalars()
     return OK(toList(species))
 
 @app.route("/api/species_create", methods=["POST"])
@@ -150,6 +181,7 @@ def species_create():
         name=request.json["name"],
         family=request.json["family"],
         s_type=request.json["type"],
+        image=request.json["image"],
         description=request.json["description"]
     )
     db.session.add(speccy)
@@ -159,7 +191,7 @@ def species_create():
 @app.route("/api/species_delete/<id>", methods=["DELETE"])
 def species_delete(id):
     if(len(toList(db.session.execute(
-        db.select(Species).where(Species.id == id)).scalars())) == 0):
+        select(Species).where(Species.id == id)).scalars())) == 0):
         return BadRequest("FISHNOFOUND")
     db.session.execute(        
         delete(Species).where(Species.id == id)  
@@ -168,20 +200,22 @@ def species_delete(id):
     return OK()
 
 
-@app.route("/api/update_speccy", methods=["POST"])
+@app.route("/api/species_update", methods=["POST"])
 def update_species():  
-    if(len(db.session.execute(
-        db.select(Species).where(Species.id == request.form["id"])).scalars()) == 0):
+    if(len(toList(db.session.execute(
+        db.select(Species).where(Species.id == request.json["id"])).scalars())) == 0):
         return BadRequest("FISHNOFOUND")
     speccy = Species(
-        scientific_name=request.form["s_name"],
-        name=request.form["name"],
-        family=request.form["family"],
-        s_type=request.form["s_type"],
-        description=request.form["description"]
-    )        
+        scientific_name=request.json["s_name"],
+        name=request.json["name"],
+        family=request.json["family"],
+        s_type=request.json["type"],
+        image=request.json["image"],
+        description=request.json["description"]
+    )       
+    speccy.id=request.json["id"]
     db.session.execute(
-        update(Species).values(speccy).where(Species.id == request.form["id"])   
+        update(Species).values(speccy.toDictPure()).where(Species.id == request.json["id"])   
     )
     db.session.commit()
     return OK()
