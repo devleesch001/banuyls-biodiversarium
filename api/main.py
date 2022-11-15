@@ -142,6 +142,18 @@ def speccy(s_name):
         db.select(Species).where(Species.scientific_name == s_name)).scalars()
     return OK(toList(species))
 
+
+@app.route("/api/species/<tmp_name>")
+def autocmpl(tmp_name):
+    
+    # result = db.session.query(Species.name).filter(Species.name.like('%'+tmp_name+'%'))
+    # return OK(toList(result))
+
+    species = db.session.execute(
+        db.select(Species.name).where(tmp_name in Species.name)).scalars()
+    return OK(toList(species))
+
+
 @app.route("/api/species_create", methods=["POST"])
 def species_create():
     
