@@ -637,12 +637,24 @@ class LoadData:
         self.count = 0
         return self
     def __next__(self):
+        if self.count == self.nf:
+            raise StopIteration
         path = self.files[self.count]
-        self.type = 'video'
-        img = None
-        while img is None:
-            img = self.cap.frame
-            # ret,img = self.cap.camera.retrieve()
+        if self.checkext(path) == 'video':
+            self.type = 'video'
+            img = None
+            while img is None:
+                img = self.cap.frame
+                # ret,img = self.cap.camera.retrieve()
+            return img, path, self.cap
+        else:
+            # Read image
+            self.count += 1
+            if type(path) == bytes:
+                nparray = np.frombuffer(path,dtype=np.uint8) 
+                img = cv2.imdecode(nparray,cv2.IMREAD_COLOR)  # BGR
+            else:
+                img = cv2.imread(path)  # BGR
         return img, path, self.cap
 
         #return cv2.imread("5e295a5_1666084008932-simonbercy.jpg")
