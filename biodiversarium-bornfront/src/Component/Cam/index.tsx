@@ -66,7 +66,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                                 const dataUrl = canvas.toDataURL("image/png");
                                 // send image to server
-                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', {
+                                axios.post('', {//http://10.3.1.37:5000/api/tablet/analyze
                                         content: dataUrl
                                 })
                                 .then((res) => {        
@@ -95,14 +95,14 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 <ResultTable fishResult={[]}/>
                                 
                         </div>
-                        <img id="videoDisplay" style={{backgroundColor: 'black', width: 800, height: 600}} onClick={onSelectFish} width={800}></img>
+                        <img id="videoDisplay" style={{backgroundColor: 'black', width: '100%', height: '100%'}} onClick={onSelectFish}></img>
                         <video 
                         crossOrigin="anonymous"
-                        src="http://localhost:8000/video"
+                        src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.720p.webm"
                         controls={false}
                         autoPlay={true}
                         muted
-                        style={{visibility: 'hidden', backgroundColor: 'black' , width : '100%', height : '100%'}}
+                        style={{backgroundColor: 'black' , width : '1px', height : '1px'}}
                         />
                    </>
         );
