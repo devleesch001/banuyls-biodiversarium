@@ -54,9 +54,15 @@ services:
 
     born: 
         build: ./biodiversarium-bornfront/biodiversarium-bornfront
+        image: banuyls-biodiversarium-born-dev
         restart: always
         networks:
             - born-network
+        environment:
+            - PORT=80
+        volumes:
+            - "./biodiversarium-bornfront/biodiversarium-bornfront:/usr/src/app"
+
 
     # http-cors:
     #     build: ./biodiversarium-bornfront/video-proxy
