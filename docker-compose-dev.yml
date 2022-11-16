@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 
 services:
     webserver:
@@ -15,23 +15,35 @@ services:
             - fish-hub
             - back-fish
             - ia
+            - born
+            # - http-cors
         networks:
             - fish-hub-network
             - back-fish-network
             - analyze-fish-remork-network
+            - born-network
+            - video-network
 
     fish-hub:
         build: ./web-appli
+        image: banuyls-biodiversarium-wep-appli-dev
         restart: always
         networks:
             - fish-hub-network
+        env_file:
+            - ./web-appli/.env.dev
+        volumes:
+            - "./web-appli:/usr/src/app"
 
     back-fish:
         build: ./back-fish
+        image: banuyls-biodiversarium-back-fish-dev
         restart: always
         networks:
             - back-fish-network
             - analyze-fish-back-network
+        volumes:
+            - "./back-fish/api:/usr/src/app"
 
     ia:
         build: ./analyze-fish-remork
@@ -40,14 +52,39 @@ services:
             - analyze-fish-remork-network
             - analyze-fish-back-network
 
+    born: 
+        build: ./biodiversarium-bornfront/biodiversarium-bornfront
+        restart: always
+        networks:
+            - born-network
+
+    # http-cors:
+    #     build: ./biodiversarium-bornfront/video-proxy
+    #     restart: always
+    #     networks:
+    #         - video-network
+    #     environment:
+    #         - PORT=80
+    #         - URL=http://localhost:8080/stream.ogg
+
 networks:
     fish-hub-network:
         external: false
+
     back-fish-network:
         external: false
+
     analyze-fish-remork-network:
         external: false
+
     analyze-fish-back-network:
         external: false
+
+    born-network:
+        external: false
+
+    video-network:
+        external: false
+
     default:
         external: false
