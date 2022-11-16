@@ -1,6 +1,6 @@
 from builtins import str
 
-from flask import Flask, request, make_response, jsonify, redirect, url_for
+from flask import Flask, request, redirect, url_for, send_from_directory, session
 from flask_oauthlib.provider import OAuth2Provider
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Column, Integer, Text, BLOB, update, delete, select
@@ -17,7 +17,8 @@ from oauth import init
 import token_utils
 from functools import wraps
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, static_url_path='', static_folder="static")
+app.secret_key="nbvtobrnjrieqpnvhujl nrsipbnehqsbntrfqsli"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aquarium.db"
 
 db = SQLAlchemy(app)
@@ -42,12 +43,23 @@ def require_token(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not token_utils.check_token(request):
-            return redirect(url_for('login', next=request.url))
+            return redirect(url_for('login'), code=302)
+        return f(*args, **kwargs)
+    return decorated_function
+    
+def auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not token_utils.check_token(request):
+            return BadRequest("NOTAUTH")
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route("/auth/login", methods=["POST"])
+@app.route("/auth/login", methods=["GET", "POST"])
 def login():
+    if request.method=="GET":
+        session["template"]="connection"
+        return app.send_static_file("connection/index.html")
     post_data = request.get_json()
     try:
         # fetch the user data
@@ -59,14 +71,34 @@ def login():
             return OK(auth_token)
     except Exception as e:
         print(e)
-        pass
     return BadRequest("ERRAUTH")
 
+@app.route("/auth/check", methods=["GET"])
+def checktoken():
+    return OK(token_utils.check_token(request))
 
 @app.route("/dashboard", methods=["GET"])
-@require_token
 def dashboard():
-    return {}
+    session["template"]="ui"
+    file = app.send_static_file('ui/index.html')
+    return file
+
+@app.route('/<path:file>')
+def send_from_root(file):
+    print(session["template"]+'/'+file)
+    return app.send_static_file(session["template"]+'/'+file)
+
+@app.route('/js/<path:file>')
+def send_js(file):
+    return app.send_static_file(session["template"]+'/js/'+file)
+
+@app.route('/css/<path:file>')
+def send_css(file):
+    return app.send_static_file(session["template"]+'/css/'+file)
+
+@app.route('/fonts/<path:file>')
+def send_font(file):
+    return app.send_static_file(session["template"]+'/fonts/'+file)
 
 CORS(app)
 
@@ -160,7 +192,18 @@ def analyzeMobile():
                 select(Species).where(Species.name == result["detection"])).scalars())
                 if(len(detail)):
                     fishes[detail[0]["name"]] = detail[0]
-                    res["detections"].append(result)
+                else:                    
+                    fishes[result["detection"]] = {
+                        "description":{},
+                        "family":None,
+                        "id":-1,
+                        "image":None,
+                        "name":result["detection"],
+                        "s_name":None,
+                        "type":"fixed"
+                    }
+                res["detections"].append(result)
+
         res["fishes"] = fishes
     else:
         return check[1]
@@ -219,6 +262,7 @@ def autocmpl(tmp_name):
     # return OK(toList(species))
 
 @app.route("/api/species_create", methods=["POST"])
+@auth
 def species_create():
     
     speccy = Species(
@@ -234,6 +278,7 @@ def species_create():
     return OK()
 
 @app.route("/api/species_delete/<id>", methods=["DELETE"])
+@auth
 def species_delete(id):
     if(len(toList(db.session.execute(
         select(Species).where(Species.id == id)).scalars())) == 0):
@@ -245,6 +290,7 @@ def species_delete(id):
     return OK()
 
 @app.route("/api/species_update", methods=["POST"])
+@auth
 def update_species():  
     if(len(toList(db.session.execute(
         db.select(Species).where(Species.id == request.json["id"])).scalars())) == 0):

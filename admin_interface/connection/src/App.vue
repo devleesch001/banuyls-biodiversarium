@@ -17,6 +17,21 @@
         </v-card-actions>
       </v-card>
     </v-main>
+    <v-snackbar
+      v-model="snackbar"
+    >
+      {{ event_text }}
+
+      <template v-slot:actions>
+        <v-btn
+          color="pink"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -27,8 +42,19 @@ export default {
 
   data: () => ({
     login:null,
-    password:null
+    password:null,
+    snackbar:false,
+    event_text:""
   }),
+  created(){
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    if("lostauth" in params)
+    {
+      this.event_text="Lost authentication, please reconnect."
+      this.snackbar=true
+    }
+  },
   methods:{
     async logIn()
     {      
@@ -48,8 +74,24 @@ export default {
                 body:JSON.stringify(details)};
         var request = new Request('http://localhost:5000/auth/login', init);
         fetch(request,init)
+        .catch((err)=>{       
+          console.lof(err)
+        })
         .then((data)=>{
-          console.log(data)
+          return data.json()
+        })
+        .then((data)=>{   
+          if("error" in data){
+            switch(data["error"])
+            {
+              case "ERRAUTH":
+                this.event_text="Authentication failed. Please try again."
+                this.snackbar=true;
+            }
+            return
+          }
+          localStorage.setItem("token", data.data)
+          window.location.replace("http://localhost:5000/dashboard");
         })
       }
     }

@@ -10,15 +10,16 @@ def encode_auth_token(user_id):
     """
     try:
         payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=0),
             'iat': datetime.datetime.utcnow(),
             'sub': user_id
         }
-        return jwt.encode(
+        token = jwt.encode(
             payload,
             SECRET_KEY,
             algorithm='HS256'
         )
+        return token
     except Exception as e:
         return e
 
@@ -29,22 +30,26 @@ def decode_auth_token(auth_token):
     :return: integer|string
     """
     try:
-        payload = jwt.decode(auth_token, SECRET_KEY)
-        return payload['sub']
-    except jwt.ExpiredSignatureError:
+        payload = jwt.decode(auth_token, SECRET_KEY 
+            , algorithms='HS256')
+        return payload
+    except jwt.ExpiredSignatureError as e:
+        print(e)
         return 'Signature expired. Please log in again.'
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        print(e)
         return 'Invalid token. Please log in again.'
 
 def check_token(request):
     # get the auth token
     auth_header = request.headers.get('Authorization')
+    print("hey")
+    print(auth_header)
     if auth_header:
-        auth_token = auth_header.split(" ")[1]
-    else:
-        auth_token = ''
+        auth_token = auth_header
     if auth_token:
         resp = decode_auth_token(auth_token)
         if not isinstance(resp, str):
-            return True
+            print(datetime.datetime.fromtimestamp(resp["exp"]), datetime.datetime.now())
+            return datetime.datetime.fromtimestamp(resp["exp"]) > datetime.datetime.now()
     return False

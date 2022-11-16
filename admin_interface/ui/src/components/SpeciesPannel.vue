@@ -78,6 +78,7 @@ export default {
             let headers = new Headers();
             headers.append("Content-type", "application/json")
             headers.append("Access-Control-Allow-Origin", "*")
+            headers.append("Authorization", localStorage.getItem("token"))
 
             let init = { method: 'POST',
                         headers: headers,
@@ -88,10 +89,21 @@ export default {
 
             fetch(request,init)
             .catch((err)=>{
-                console.log(err)
+                if("error" in err && err.error=="NOTAUTH")
+                {                    
+                    window.location.replace("http://localhost:5000/auth/login");
+                    return;
+                }
             })
-            .then(()=>{
+            .then((data)=>{
                 this.update()
+                return data.json()
+            }).then((data)=>{                
+                if("error" in data && data.error=="NOTAUTH")
+                {                    
+                    window.location.replace("http://localhost:5000/auth/login?lostauth");
+                    return;
+                }
             })
             this.dialog = false;
         },
@@ -112,7 +124,6 @@ export default {
             })
             .then((json)=>{
                 this.speccies = json.data;
-                console.log(this.speccies)
                 this.refresh()
             })
         }

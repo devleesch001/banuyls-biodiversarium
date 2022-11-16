@@ -103,12 +103,23 @@ export default {
     },
     methods:{
         delete(){
-            fetch(BASE_API_URL+'api/species_delete/'+this.s_id, {method:"DELETE"})
+            fetch(BASE_API_URL+'api/species_delete/'+this.s_id, {method:"DELETE", headers:{
+                "Authorization": localStorage.getItem("token")
+            }})
             .catch((err)=>{
                 console.log(err)
             })
-            .then(()=>{
+            .then((data)=>{                
                 this.bus.emit("speccy_deleted", this.name)
+                return data.json()
+            })
+            .then((data)=>{
+                console.log(data)
+                if("error" in data && data.error=="NOTAUTH")
+                {                    
+                    window.location.replace("http://localhost:5000/auth/login?lostauth");
+                    return;
+                }
             })
             this.deleteConfirm=false;
         },
@@ -117,6 +128,7 @@ export default {
             let headers = new Headers();
             headers.append("Content-type", "application/json")
             headers.append("Access-Control-Allow-Origin", "*")
+            headers.append("Authorization", localStorage.getItem("token"))
 
             let init = { method: 'POST',
                         headers: headers,
@@ -126,7 +138,11 @@ export default {
 
             fetch(request,init)
             .catch((err)=>{
-                console.log(err)
+                if("error" in err && err.error=="NOTAUTH")
+                {                    
+                    window.location.replace("http://localhost:5000/auth/login?lostauth");
+                    return;
+                }
             })
             .then(()=>{
                 this.bus.emit("speccy_updated", this.name)
