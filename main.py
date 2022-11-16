@@ -10,8 +10,8 @@ import requests
 import asyncio
 
 
-# app = FastAPI(docs_url="/ia/docs", redoc_url=None)
-app = FastAPI()
+app = FastAPI(docs_url="/ia/docs", redoc_url=None)
+# app = FastAPI()
 
 API_VERSION = "v1"
 
@@ -20,8 +20,8 @@ inferer_glob = Inferer(None, "weights/best_ckpt.pt", 0, "fishDataset/data.yaml",
 inferer_lock = threading.Lock()
 
 
-# @app.post(f"/ia/{API_VERSION}/image-detection/")
-@app.post(f"/{API_VERSION}/image-detection/")
+@app.post(f"/ia/{API_VERSION}/image-detection/")
+# @app.post(f"/{API_VERSION}/image-detection/")
 async def postObjectDetection(file: UploadFile = File(...)):
     print(file)
     contents = await file.read()
@@ -53,8 +53,8 @@ def between_callback(websocket, data):
     loop.close()
 
 
-@app.websocket(f"/{API_VERSION}/live-detection/")
-# @app.websocket(f"/ia/{API_VERSION}/live-detection/")
+# @app.websocket(f"/{API_VERSION}/live-detection/")
+@app.websocket(f"/ia/{API_VERSION}/live-detection/")
 async def live_detection(websocket: WebSocket):
     await websocket.accept()
     url = websocket.query_params['target']
