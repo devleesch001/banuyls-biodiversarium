@@ -108,15 +108,17 @@ def main(source,dest,train,test,valid,generate_images):
                         top = elem["point1"][1]*height
                         right = elem["point2"][0]*width
                         bottom = elem["point2"][1]*height
-                        
-                        for j in range(nb_to_gen):
-                            im1 = im.crop((left, top, right, bottom))
-                            im1 = transform_image(im1)
-                            name = key.replace(" ","_")+"_"+str(i)+"_"+str(j)
-                            path_image = "/tmp/analyse_fish/"+name+".jpg"
-                            generated_images.append({"name":name,"label":key,"path":path_image})
-                            im1.save(Path(path_image))
-                            nb_generated+=1
+                        try:
+                            for j in range(nb_to_gen):
+                                im1 = im.crop((left, top, right, bottom))
+                                im1 = transform_image(im1)
+                                name = key.replace(" ","_")+"_"+str(i)+"_"+str(j)
+                                path_image = "/tmp/analyse_fish/"+name+".jpg"
+                                generated_images.append({"name":name,"label":key,"path":path_image})
+                                im1.save(Path(path_image))
+                                nb_generated+=1
+                        except Image.DecompressionBombError:
+                            print("Image trop grande pour la génération")
 
     print("Split des images")
     mkdir(dest+"images/")

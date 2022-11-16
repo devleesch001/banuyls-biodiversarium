@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import uvicorn
 import json
-from fastapi import FastAPI, File, UploadFile, WebSocket
+from fastapi import FastAPI, File, UploadFile, WebSocket, APIRouter
 from fastapi.responses import FileResponse
 from yolov6.core.inferer import Inferer
 import time
@@ -9,20 +9,18 @@ import threading
 import requests
 import asyncio
 
+
+# app = FastAPI(docs_url="/ia/docs", redoc_url=None)
 app = FastAPI()
 
 API_VERSION = "v1"
 
 
-@app.get('/favicon.ico', include_in_schema=False)
-async def favicon():
-    return FileResponse("favicon.png")
+inferer_glob = Inferer(None, "weights/best_ckpt.pt", 0, "fishDataset/data.yaml", [416,416], False)
+inferer_lock = threading.Lock()
 
 
-@app.get("/")
-async def home():
-    return {"message": "API for fish recognition! Check documentation on /docs ."}
-
+# @app.post(f"/ia/{API_VERSION}/image-detection/")
 @app.post(f"/{API_VERSION}/image-detection/")
 async def postObjectDetection(file: UploadFile = File(...)):
     print(file)
@@ -30,8 +28,14 @@ async def postObjectDetection(file: UploadFile = File(...)):
     #print(contents)
     # Inference2
     #path = "5e295a5_1666084008932-simonbercy.jpg"
-    inferer = Inferer(contents, "weights/yolov6s.pt", 0, "data/coco.yaml", 640, False)
-    res = inferer.infer(0.4, 0.45, None, False, 1000, "runs/inference/exp", True, True, False, False, False,use_only_result=True)
+    # inferer = Inferer(contents, "weights/yolov6s.pt", 0, "data/coco.yaml", 640, False)
+    if inferer_lock.acquire(False):
+        inferer_glob.set_content(contents)
+        res = inferer_glob.infer(0.4, 0.45, None, False, 1000, "runs/inference/exp", True, True, False, False, False,use_only_result=True)
+        inferer_lock.release()
+    else:
+        inferer = Inferer(contents, "weights/best_ckpt.pt", 0, "fishDataset/data.yaml", [416,416], False)
+        res = inferer.infer(0.4, 0.45, None, False, 1000, "runs/inference/exp", True, True, False, False, False,use_only_result=True)
     print("res",res)
     return {"detection":res}
 
@@ -50,6 +54,7 @@ def between_callback(websocket, data):
 
 
 @app.websocket(f"/{API_VERSION}/live-detection/")
+# @app.websocket(f"/ia/{API_VERSION}/live-detection/")
 async def live_detection(websocket: WebSocket):
     await websocket.accept()
     url = websocket.query_params['target']
@@ -68,7 +73,6 @@ async def live_detection(websocket: WebSocket):
             # t = Thread(target=truc, args=[websocket,json.dumps({"detection":det})])
             # t.run()
             
-            print("coucou")
             await websocket.send_json(json.dumps({"detection":ldt.getDet()}))
             # await websocket.send_json(json.dumps({"detection":det}))
             # i+=1
@@ -82,7 +86,8 @@ async def live_detection(websocket: WebSocket):
 class LiveDetectionThread(threading.Thread):
     def __init__(self, url):
         super().__init__()
-        self.inferer = Inferer(url, "weights/yolov6s.pt", 0, "data/coco.yaml", 640, False)
+        # self.inferer = Inferer(url, "weights/yolov6s.pt", 0, "data/coco.yaml", 640, False)
+        self.inferer = Inferer(url, "weights/best_ckpt.pt", 0, "fishDataset/data.yaml", [416,416], False)
         # Start thread
         self.daemon = True
         self.det = []
