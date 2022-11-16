@@ -3,10 +3,11 @@ import { Button } from '@mui/material';
 import {Logo} from '../'
 import { Grid, MenuItem } from '@mui/material';
 import Select from '@mui/material/Select';
+import { config } from '../../config';
 
 export enum cameraChoiceEnum {
-        OUT = 'http://localhost:8000/out',
-        IN = 'http://localhost:8000/in',
+        OUT = config.CAMERA_OUT,
+        IN = config.CAMERA_IN,
 };
 
 interface homePageButtonProps {
@@ -19,16 +20,9 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
         onCameraChoice
 }) => {
 
-        const [counter, setCounter] = useState(0);
-        //const [cameraChoice, setCameraChoice] = useState<cameraChoiceEnum>(cameraChoiceEnum.OUT);
         let cameraChoice = React.useRef<cameraChoiceEnum>(cameraChoiceEnum.OUT);
 
-        /*useEffect(() => {
-                setCameraChoice(cameraChoice)
-        }, [cameraChoice]);*/
-
         const onCameraChoiceChange = (sender: any) => {
-                //setCameraChoice(sender?.target?.value ? sender.target.value : cameraChoiceEnum.OUT);
                 cameraChoice.current = sender?.target?.value ? sender.target.value : cameraChoiceEnum.OUT;
                 onCameraChoice(cameraChoice.current);
         };

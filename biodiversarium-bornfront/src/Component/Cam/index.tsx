@@ -5,6 +5,7 @@ import ResultTable from '../Table';
 import { Grid } from '@mui/material';
 import { cameraChoiceEnum } from '../HomePageButton';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
+import { config } from '../../config';
 
 interface CamProps {
         fishResult: {
@@ -53,7 +54,8 @@ const Cam: React.FC<CamProps> = (Props) => {
         let originalImage = React.useRef('');
         let detectionsArray = React.useRef<detection[]>([]);
         let isAnalysing = React.useRef(false);
-        
+        let hasSelected = React.useRef(false);
+
         const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
 
         const getVideo = () => {
@@ -93,7 +95,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                         ctx.drawImage(img, 0, 0);
                                                         if(!isAnalysing.current) {
                                                                 isAnalysing.current = true;
-                                                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', { //http://10.3.1.37:5000
+                                                                axios.post(config.IA_API_TABLET_ANALYZE, {
                                                                         content: newImageRect
                                                                 })
                                                                 .then((res) => {
@@ -167,6 +169,8 @@ const Cam: React.FC<CamProps> = (Props) => {
         }, []);
 
         const onSelectFish = (sender: any) => {
+                hasSelected.current = true; // pour indiquer qu'un poisson a été sélectionné
+
                 let canvas = document.querySelector('canvas');
                 let img = document.createElement('img');
 
@@ -185,7 +189,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                 ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                                                 const dataUrl = canvas.toDataURL("image/png");
                                                 // send image to server
-                                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', {//http://10.3.1.37:5000
+                                                axios.post(config.IA_API_TABLET_ANALYZE, {
                                                         content: dataUrl
                                                 })
                                                 .then((res) => {
@@ -200,7 +204,35 @@ const Cam: React.FC<CamProps> = (Props) => {
 
                                                         setFishResult(result);
                                                 })
-                                                .catch((err) => setFishResult([]));
+                                                .catch((err) => {
+                                                        let fakeResult: {
+                                                                certainty: number,
+                                                                detection: string,
+                                                                position: { 
+                                                                        bottomright: { x: number, y: number },
+                                                                        topleft: { x: number, y: number }
+                                                                }
+                                                        }[] = [
+                                                                {
+                                                                        certainty: 0.6,
+                                                                        detection: 'FISH_1',
+                                                                        position: {
+                                                                                bottomright: { x: 0, y: 0 },
+                                                                                topleft: { x: 0, y: 0 }
+                                                                        }
+                                                                },
+                                                                {
+                                                                        certainty: 0.6,
+                                                                        detection: 'FISH_2',
+                                                                        position: {
+                                                                                bottomright: { x: 0, y: 0 },
+                                                                                topleft: { x: 0, y: 0 }
+                                                                        }
+                                                                }
+                                                        ];
+
+                                                        setFishResult([]);
+                                                });
                                         }     
                                 }                                
                         };
@@ -219,7 +251,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                         </Grid>
 
                         <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
-                                {fishResult.length ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un poisson <TouchAppIcon/></i></h2>}
+                                {hasSelected.current ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un poisson <TouchAppIcon/></i></h2>}
                         </Grid>
 
                         <Grid item xs={12}>                                
