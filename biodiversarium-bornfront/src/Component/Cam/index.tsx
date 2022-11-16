@@ -1,4 +1,5 @@
 import React from 'react'
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ResultTable from '../Table';
@@ -6,6 +7,9 @@ import { Grid } from '@mui/material';
 import { cameraChoiceEnum } from '../HomePageButton';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import { config } from '../../config';
+=======
+import { useRef } from 'react';
+>>>>>>> e0b9f99b7ada6985cc7507cf23bd870085e2bfa3
 
 interface CamProps {
         fishResult: {
@@ -37,6 +41,7 @@ type toDetecodeStruct = {
         y2: number;
 };
 
+<<<<<<< HEAD
 type detection = {
         x: number;
         y: number;
@@ -265,6 +270,17 @@ const Cam: React.FC<CamProps> = (Props) => {
                                         />
                         </Grid>
                    </Grid>
+=======
+const Cam: React.FC<camProps> = ({}) => {
+        const playerRef = useRef() as any  ;
+        return (
+                
+                   <>
+                        <video crossOrigin="anonymous" src="http://10.3.3.61:8000/video"  controls={false} onClick={onSelectFish}
+                        autoPlay={true} muted style={{backgroundColor: 'black' , width : '100%', height : '100%'}}
+                        />
+                   </>
+>>>>>>> e0b9f99b7ada6985cc7507cf23bd870085e2bfa3
         );
 };
 

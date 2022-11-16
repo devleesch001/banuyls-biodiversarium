@@ -43,7 +43,10 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
                 zIndex: -1
             }}
         >
+<<<<<<< HEAD
             <source src={require('./PrincipalBackground.mp4')} type="video/mp4"/>
+=======
+>>>>>>> e0b9f99b7ada6985cc7507cf23bd870085e2bfa3
         </video>
                 <Logo/>
                 <Grid container spacing={1}>

@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import reportWebVitals from './reportWebVitals';
+<<<<<<< HEAD
 import { MainPage } from './Component';
+=======
+import Webcam from "react-webcam";
+import { useRef } from "react";
+import { text } from 'node:stream/consumers';
+import { Cam, MoreInfoButton, Logo, Description, MainPage } from './Component';
+import { Grid } from '@mui/material';
+
+>>>>>>> e0b9f99b7ada6985cc7507cf23bd870085e2bfa3
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
