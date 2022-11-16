@@ -245,9 +245,10 @@ def species_list():
 @app.route("/api/species/names", methods=["GET"])
 def species_names():
     species = Species.query.all()
-    species_serialized = [{"name":element.toDict()["name"], "s_name":element.toDict()["s_name"]} for element in species]
+    species_serialized = [{"name":element.name, "s_name":element.scientific_name} for element in species]
 
     return OK(species_serialized)
+    
 @app.route("/api/species/<name>")
 def speccy(name):
     species = db.session.execute(
