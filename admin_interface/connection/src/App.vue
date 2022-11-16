@@ -75,7 +75,7 @@ export default {
         var request = new Request('http://localhost:5000/auth/login', init);
         fetch(request,init)
         .catch((err)=>{       
-          console.lof(err)
+          console.log(err)
         })
         .then((data)=>{
           return data.json()
