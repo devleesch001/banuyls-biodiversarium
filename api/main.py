@@ -127,7 +127,7 @@ class Species(db.Model):
     family = db.Column(String(50))
     description = db.Column(Text)
     s_type = db.Column(String(20))
-    image = db.Column(String(999))
+    image = db.Column(Text)
 
     def __init__(self, scientific_name: str, image:str, name: str, family: str, description: str, s_type: str):
         self.scientific_name = scientific_name

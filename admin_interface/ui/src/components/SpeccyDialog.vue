@@ -64,10 +64,10 @@
                     <v-window v-model="lang">
                         <v-window-item v-for="lang in langs" :key="lang" :value="lang">
                             <v-textarea 
-                            counter="500" 
+                            counter="1500" 
                             clearable 
-                            :rules="[v => (v || '').length <= 500 ||
-                            `A maximum of 500 characters is allowed`]"
+                            :rules="[v => (v || '').length <= 1500 ||
+                            `A maximum of 1500 characters is allowed`]"
                             label="Description" 
                             v-model="newSpeccy.description[lang]"></v-textarea>
                         </v-window-item>
