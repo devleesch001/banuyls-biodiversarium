@@ -1,6 +1,6 @@
 from builtins import str
 
-from flask import Flask, g, request, render_template, url_for, redirect
+from flask import Flask, request, make_response, jsonify, redirect, url_for
 from flask_oauthlib.provider import OAuth2Provider
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Column, Integer, Text, BLOB, update, delete, select
@@ -14,19 +14,10 @@ import binascii
 import imghdr
 import imerir_controller
 from oauth import init
-from datetime import datetime, timedelta
+import token_utils
 from functools import wraps
 
-def require_login(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if g.user is None:
-            return redirect(url_for('login', next=request.url))
-        return f(*args, **kwargs)
-    return decorated_function
-
 app = Flask(__name__, template_folder='templates')
-oauth = OAuth2Provider(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aquarium.db"
 
 db = SQLAlchemy(app)
@@ -34,81 +25,7 @@ db.init_app(app)
 
 MOBILE_AI = "IMERIR"
 
-Client, User, Grant, Token=init(db)
-
-@oauth.clientgetter
-def load_client(client_id):
-    return Client.query.filter_by(client_id=client_id).first()
-
-@oauth.grantgetter
-def load_grant(client_id, code):
-    return Grant.query.filter_by(client_id=client_id, code=code).first()
-
-@oauth.grantsetter
-def save_grant(client_id, code, request, *args, **kwargs):
-    # decide the expires time yourself
-    expires = datetime.utcnow() + timedelta(seconds=100)
-    grant = Grant(
-        client_id=client_id,
-        code=code['code'],
-        redirect_uri=request.redirect_uri,
-        _scopes=' '.join(request.scopes),
-        user=User.query.filter_by(id=request.client.user_id).first(),
-        expires=expires
-    )
-    db.session.add(grant)
-    db.session.commit()
-    return grant
-
-@oauth.tokengetter
-def load_token(access_token=None, refresh_token=None):
-    if access_token:
-        return Token.query.filter_by(access_token=access_token).first()
-    elif refresh_token:
-        return Token.query.filter_by(refresh_token=refresh_token).first()
-
-@oauth.tokensetter
-def save_token(token, request, *args, **kwargs):
-    toks = Token.query.filter_by(client_id=request.client.client_id,
-                                 user_id=request.user.id)
-    # make sure that every client has only one token connected to a user
-    for t in toks:
-        db.session.delete(t)
-
-    expires_in = token.get('expires_in')
-    expires = datetime.utcnow() + timedelta(seconds=expires_in)
-
-    tok = Token(
-        access_token=token['access_token'],
-        refresh_token=token['refresh_token'],
-        token_type=token['token_type'],
-        _scopes=token['scope'],
-        expires=expires,
-        client_id=request.client.client_id,
-        user_id=request.user.id,
-    )
-    db.session.add(tok)
-    db.session.commit()
-    return tok
-
-@oauth.usergetter
-def get_user(username, password, *args, **kwargs):
-    user = User.query.filter_by(username=username).first()
-    if user.check_password(password):
-        return user
-    return None
-
-@app.route('/api/authorize', methods=['POST'])
-@require_login
-@oauth.authorize_handler
-def authorize(*args, **kwargs):
-    confirm = request.form.get('confirm', 'no')
-    return confirm == 'yes'
-
-@app.route('/api/token', methods=['POST'])
-@oauth.token_handler
-def access_token():
-    return None
+User, Token=init(db)
 
 def OK(result="Done"):
     return ({"data": result}, 200)
@@ -121,6 +38,35 @@ def KO(err="UNKNW"):
 def BadRequest(reason="UNKNW"):
     return ({"error": reason}, 400)
 
+def require_token(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not token_utils.check_token(request):
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route("/auth/login", methods=["POST"])
+def login():
+    post_data = request.get_json()
+    try:
+        # fetch the user data
+        user = User.query.filter_by(
+            username=post_data.get('username'), password=post_data.get('password')
+            ).first()
+        auth_token = token_utils.encode_auth_token(user.id)
+        if auth_token:
+            return OK(auth_token)
+    except Exception as e:
+        print(e)
+        pass
+    return BadRequest("ERRAUTH")
+
+
+@app.route("/dashboard", methods=["GET"])
+@require_token
+def dashboard():
+    return {}
 
 CORS(app)
 
@@ -272,7 +218,6 @@ def autocmpl(tmp_name):
     #     db.select(Species.name).where(tmp_name in Species.name)).scalars()
     # return OK(toList(species))
 
-
 @app.route("/api/species_create", methods=["POST"])
 def species_create():
     
@@ -298,7 +243,6 @@ def species_delete(id):
     )
     db.session.commit()
     return OK()
-
 
 @app.route("/api/species_update", methods=["POST"])
 def update_species():  
@@ -326,5 +270,10 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", default=5000, type=int, help="port number")
     parser.add_argument("-d", "--debug", default=False, type=bool, help="Debug")
     args = parser.parse_args()
+    with app.app_context():
+        if(User.query.filter_by(username="admin").first() is None):
+            user = User("admin", "admin")
+            db.session.add(user)
+            db.session.commit()
 
     app.run(host="0.0.0.0", port=args.port, debug=args.debug)
