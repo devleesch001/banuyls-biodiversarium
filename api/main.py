@@ -260,7 +260,11 @@ def autocmpl(tmp_name):
     
     result = db.session.query(Species).filter(Species.name.like('%'+tmp_name+'%'))
 
-    return OK(toList(result))
+    autocomp = []
+    for speccy in toList(result):
+        autocomp.append(speccy["name"])
+
+    return OK(autocomp)
 
     # species = db.session.execute(
     #     db.select(Species.name).where(tmp_name in Species.name)).scalars()
@@ -318,7 +322,7 @@ def update_species():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flask API")
-    parser.add_argument("-p", "--port", default=5000, type=int, help="port number")
+    parser.add_argument("-p", "--port", default=80, type=int, help="port number")
     parser.add_argument("-d", "--debug", default=False, type=bool, help="Debug")
     args = parser.parse_args()
     with app.app_context():
