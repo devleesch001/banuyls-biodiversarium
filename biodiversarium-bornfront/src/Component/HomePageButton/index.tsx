@@ -58,7 +58,7 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
                                 left: '50%',
                                 top: '35%',
                                 transform: 'translate(-50%, -50%)',
-                                color:'white',
+                                color:'rgba(255,255,255,1)',
                                 fontWeight:"bold",
                                 fontSize: '30px',
                                 fontFamily: 'italic',
@@ -77,12 +77,13 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
                                 left: '50%',
                                 top: '50%',
                                 transform: 'translate(-50%, -50%)',
-                                color:'white',
+                                color:'rgba(255,255,255,1)',
                                 fontWeight:"bold" ,
                                 fontSize: '30px',
                                 fontFamily: 'italic',
                                 backgroundColor: 'rgba(189,195,199,0.5)',
                                 borderRadius:'10px' ,
+                                borderColor:'rgba(255, 255, 255, 1)',
                         }}>
                                 <Select
                                 labelId="camera-choice-select-label"

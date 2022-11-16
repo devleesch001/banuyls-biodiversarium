@@ -144,7 +144,6 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                         }
                                                         
                                                 }
-
                                         };
                                         img.src = newImageRect;
                                         
@@ -177,8 +176,8 @@ const Cam: React.FC<CamProps> = (Props) => {
                                         let x = sender.pageX - img.offsetLeft;
                                         let y = sender.pageY - img.offsetTop;
                         
-                                        canvas.width = 100;
-                                        canvas.height = 100;
+                                        canvas.width = 50;
+                                        canvas.height = 50;
                         
                                         const ctx = canvas.getContext('2d');
                         
