@@ -1,18 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@mui/material';
 import {Logo} from '../'
 import { Grid, MenuItem } from '@mui/material';
 import Select from '@mui/material/Select';
 
 export enum cameraChoiceEnum {
-        OUT = 'http://10.3.3.61:8000/out',
-        IN = 'http://10.3.3.61:8000/in',
+        OUT = 'http://localhost:8000/out',
+        IN = 'http://localhost:8000/in',
 };
 
 interface homePageButtonProps {
         onClickCommencer: () => void;
-        onCameraChoice: (value: cameraChoiceEnum) => void;
-        
+        onCameraChoice: (value: cameraChoiceEnum) => void;        
 }
 
 const HomePageButton: React.FC<homePageButtonProps> = ({
@@ -20,11 +19,18 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
         onCameraChoice
 }) => {
 
-        const [cameraChoice, setCameraChoice] = useState<cameraChoiceEnum>(cameraChoiceEnum.OUT);
-        
+        const [counter, setCounter] = useState(0);
+        //const [cameraChoice, setCameraChoice] = useState<cameraChoiceEnum>(cameraChoiceEnum.OUT);
+        let cameraChoice = React.useRef<cameraChoiceEnum>(cameraChoiceEnum.OUT);
+
+        /*useEffect(() => {
+                setCameraChoice(cameraChoice)
+        }, [cameraChoice]);*/
+
         const onCameraChoiceChange = (sender: any) => {
-                setCameraChoice(sender?.target?.value ? sender.target.value : cameraChoiceEnum.OUT);
-                onCameraChoice(cameraChoice);
+                //setCameraChoice(sender?.target?.value ? sender.target.value : cameraChoiceEnum.OUT);
+                cameraChoice.current = sender?.target?.value ? sender.target.value : cameraChoiceEnum.OUT;
+                onCameraChoice(cameraChoice.current);
         };
 
         return <Grid container spacing={1}>             
@@ -81,7 +87,7 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
                                 <Select
                                 labelId="camera-choice-select-label"
                                 id="camera-choice-select"
-                                value={cameraChoice}
+                                value={cameraChoice.current}
                                 label="cameraChoice"
                                 onChange={onCameraChoiceChange}
                                 >

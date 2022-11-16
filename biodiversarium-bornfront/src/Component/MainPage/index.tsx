@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Grid } from '@mui/material';
 import { Cam, Logo, Description, HomePageButton } from '../'
 import { cameraChoiceEnum } from '../HomePageButton';
@@ -10,22 +10,13 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
 
     const [isHomePage, setIsHomePage] = useState(true);
     const [fishResult, setFishResult] = useState<{
-        detections: {
-            certainty: number,
-            detection: string,
-            position: {
-                bottomright: {
-                    x: number,
-                    y: number
-                },
-                topleft: {
-                    x: number,
-                    y: number
-                }
-            }
-        }[],
-        fishes: any
-    }>({ detections: [], fishes: {} });
+        certainty: number,
+        detection: string,
+        position: { 
+                bottomright: { x: number, y: number },
+                topleft: { x: number, y: number }
+        }
+      }[]>([]);
     
 
     const onClickCommencer = () => {
@@ -33,26 +24,21 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
     }
 
     const fishResultHandler = (value: {
-        detections: {
-            certainty: number,
-            detection: string,
-            position: {
-                bottomright: {
-                    x: number,
-                    y: number
-                },
-                topleft: {
-                    x: number,
-                    y: number
-                }
-            }
-        }[],
-        fishes: any
-    }): void => {
+        certainty: number,
+        detection: string,
+        position: { 
+                bottomright: { x: number, y: number },
+                topleft: { x: number, y: number }
+        }
+      }[]): void => {
         setFishResult(value);
     };
 
     const [cameraChoice, setCameraChoice] = useState<cameraChoiceEnum>(cameraChoiceEnum.OUT);
+
+    useEffect(() => {
+            setCameraChoice(cameraChoice)
+    }, [cameraChoice]);
 
     const cameraChoiceHandler = (value: cameraChoiceEnum) => {
         setCameraChoice(value);

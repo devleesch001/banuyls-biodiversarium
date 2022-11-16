@@ -4,52 +4,59 @@ import axios from 'axios';
 import ResultTable from '../Table';
 import { Grid } from '@mui/material';
 import { cameraChoiceEnum } from '../HomePageButton';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
 
 interface CamProps {
         fishResult: {
-                detections: {
-                    certainty: number,
-                    detection: string,
-                    position: {
-                        bottomright: {
-                            x: number,
-                            y: number
-                        },
-                        topleft: {
-                            x: number,
-                            y: number
-                        }
-                    }
-                }[],
-                fishes: any
-        };
+                certainty: number,
+                detection: string,
+                position: { 
+                        bottomright: { x: number, y: number },
+                        topleft: { x: number, y: number }
+                }
+        }[];
         setFishResult(value: {
-                detections: {
-                    certainty: number,
-                    detection: string,
-                    position: {
-                        bottomright: {
-                            x: number,
-                            y: number
-                        },
-                        topleft: {
-                            x: number,
-                            y: number
-                        }
-                    }
-                }[],
-                fishes: {}
-        }): void;
+                certainty: number,
+                detection: string,
+                position: { 
+                        bottomright: { x: number, y: number },
+                        topleft: { x: number, y: number }
+                }
+        }[]): void;
 
         cameraChoice: cameraChoiceEnum;
 }
 
+type toDetecodeStruct = {
+        class_name: string;
+        conf: number;
+        x1: number;
+        x2: number;
+        y1: number;
+        y2: number;
+};
+
+type detection = {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        label: string;
+        percentage: number;
+};
+      
 const Cam: React.FC<CamProps> = (Props) => {
 
         const [counter, setCounter] = useState(0);
         const { fishResult, setFishResult, cameraChoice } = Props;
+        //const [originalImage, setOriginalImage] = useState<string>('');
+        let originalImage = React.useRef('');
+        let detectionsArray = React.useRef<detection[]>([]);
+        let isAnalysing = React.useRef(false);
+        
+        const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
 
-        const displayVideo = () => {
+        const getVideo = () => {
                 let video = document.querySelector('video');
                 let img = document.getElementById('videoDisplay') as HTMLImageElement;
                 if(video && img) {
@@ -59,13 +66,101 @@ const Cam: React.FC<CamProps> = (Props) => {
         
                         const ctx = canvas.getContext('2d');
                         if(ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        img.src = canvas.toDataURL('image/jpeg');
+                        //img.src = canvas.toDataURL('image/jpeg');
+                        const imageB64 = canvas.toDataURL('image/jpeg');
+                        //setOriginalImage(imageB64);
+                        originalImage.current = imageB64;
+                        //setImageRect(imageB64);
+                        //imageRect.current = imageB64;
                 }
         };
         
+        const displayRectVideo = () => {                
+                let newImageRect = originalImage.current;
+                if(!isImageLoading && newImageRect !== '') {
+                        let videoDisplay = document.getElementById('videoDisplay') as HTMLImageElement;
+                        // ------                
+                        // traitement sur l'image (requette axios)
+                        let canvas = document.createElement('canvas');
+                        let img = new Image();
+                        if(canvas && img) {
+                                canvas.width = videoDisplay.clientWidth;
+                                canvas.height = videoDisplay.clientHeight;
+                                let ctx = canvas.getContext('2d');
+                                if(ctx) {
+                                        img.onload = function() {
+                                                if(ctx) {
+                                                        ctx.drawImage(img, 0, 0);
+                                                        if(!isAnalysing.current) {
+                                                                isAnalysing.current = true;
+                                                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', { //http://10.3.1.37:5000
+                                                                        content: newImageRect
+                                                                })
+                                                                .then((res) => {
+                                                                        let data = res?.data?.data as {
+                                                                                certainty: number,
+                                                                                detection: string,
+                                                                                position: { 
+                                                                                        bottomright: { x: number, y: number },
+                                                                                        topleft: { x: number, y: number }
+                                                                                }
+                                                                        }[];
+
+                                                                        let detectionArray: detection[] = [];
+                                                                        
+                                                                        data?.map(c => {
+                                                                                let tmpDetection = {} as detection;
+                                                                                tmpDetection.x = c.position.topleft.x;
+                                                                                tmpDetection.y = c.position.topleft.y;
+                                                                                tmpDetection.label = c.detection;
+                                                                                tmpDetection.percentage = parseInt((c.certainty*100).toFixed(2));
+                                                                                tmpDetection.width = c.position.bottomright.x - c.position.topleft.x;
+                                                                                tmpDetection.height = c.position.bottomright.y - c.position.topleft.y;
+                                                                                detectionArray.push(tmpDetection);
+                                                                        });
+
+                                                                        detectionsArray.current = detectionArray;                                                                        
+                                                                        isAnalysing.current = false;
+
+                                                                })
+                                                                .catch((err) => isAnalysing.current = false);
+                                                        }
+
+                                                        detectionsArray.current.map(rect => {
+                                                                if(ctx) {
+                                                                        ctx.fillStyle = "#FF0000";                                                                        
+                                                                        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                                                                        ctx.fillText(rect.label + ' ' + rect.percentage.toString() + '%', rect.x, rect.y+rect.height+10);
+                                                                        ctx.stroke();
+                                                                }
+                                                        });
+                                                        
+                                                        if(videoDisplay) {
+                                                                videoDisplay.onload = () => {
+                                                                        setIsImageLoading(false);
+                                                                }
+                                                                videoDisplay.src = canvas.toDataURL('image/jpeg');
+                                                                setIsImageLoading(true);
+                                                        }
+                                                        
+                                                }
+
+                                        };
+                                        img.src = newImageRect;
+                                        
+                                        
+                                }
+                                
+                                
+                        }
+                        
+                }                
+        };
+
         useEffect(() => {
                 const interval = setInterval(() => {
-                        displayVideo();
+                        getVideo();
+                        displayRectVideo();
                         setCounter((prevCounter) => prevCounter);
                 }, 1);
 
@@ -74,39 +169,43 @@ const Cam: React.FC<CamProps> = (Props) => {
 
         const onSelectFish = (sender: any) => {
                 let canvas = document.querySelector('canvas');
-                let img = document.getElementById('videoDisplay') as HTMLImageElement;
-                
-                if (img && canvas) {
-                        let x = sender.pageX - img.offsetLeft;
-                        let y = sender.pageY - img.offsetTop;
-        
-                        canvas.width = 100;
-                        canvas.height = 100;
-        
-                        const ctx = canvas.getContext('2d');
-        
-                        if (ctx && img) {                              
-                                ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                                const dataUrl = canvas.toDataURL("image/png");
-                                // send image to server
-                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', {//http://10.3.1.37:5000/api/tablet/analyze
-                                        content: dataUrl
-                                })
-                                .then((res) => {        
-                                        const result = (res?.data as unknown) as {
-                                                id: number;
-                                                scientific_name: string;
-                                                name: string;
-                                                family: string;
-                                                description: {
-                                                        fr: string;
-                                                };
-                                                s_type: string;
-                                        }[];
-                                        setFishResult({ detections: [], fishes: {} });
-                                })
-                                .catch((err) => setFishResult({ detections: [], fishes: {} }));
-                        }
+                let img = document.createElement('img');
+
+                if (img && canvas && originalImage.current !== '') {
+                        img.onload = () => {
+                                if(canvas) {
+                                        let x = sender.pageX - img.offsetLeft;
+                                        let y = sender.pageY - img.offsetTop;
+                        
+                                        canvas.width = 100;
+                                        canvas.height = 100;
+                        
+                                        const ctx = canvas.getContext('2d');
+                        
+                                        if (ctx && img) {                              
+                                                ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                                                const dataUrl = canvas.toDataURL("image/png");
+                                                // send image to server
+                                                axios.post('http://10.3.1.37:5000/api/tablet/analyze', {//http://10.3.1.37:5000
+                                                        content: dataUrl
+                                                })
+                                                .then((res) => {
+                                                        let result = res?.data?.data as {
+                                                                certainty: number,
+                                                                detection: string,
+                                                                position: { 
+                                                                        bottomright: { x: number, y: number },
+                                                                        topleft: { x: number, y: number }
+                                                                }
+                                                        }[];
+
+                                                        setFishResult(result);
+                                                })
+                                                .catch((err) => setFishResult([]));
+                                        }     
+                                }                                
+                        };
+                        img.src = originalImage.current;                       
                 }
         };
         
@@ -117,11 +216,11 @@ const Cam: React.FC<CamProps> = (Props) => {
                         </Grid>
 
                         <Grid item xs={2} sm={2} md={2} lg={2} xl={2} id='canvas'>
-                                <canvas></canvas>
+                                <canvas style={{width: '100%'}}></canvas>
                         </Grid>
 
                         <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
-                                <ResultTable fishResult={fishResult}/>
+                                {fishResult.length ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un poisson <TouchAppIcon/></i></h2>}
                         </Grid>
 
                         <Grid item xs={12}>                                

@@ -9,22 +9,13 @@ import Paper from '@mui/material/Paper';
 
 interface ResultTableProps {
   fishResult: {
-    detections: {
-        certainty: number,
-        detection: string,
-        position: {
-            bottomright: {
-                x: number,
-                y: number
-            },
-            topleft: {
-                x: number,
-                y: number
-            }
-        }
-    }[],
-    fishes: any
-  };
+    certainty: number,
+    detection: string,
+    position: { 
+            bottomright: { x: number, y: number },
+            topleft: { x: number, y: number }
+    }
+  }[];
 }
 
 const ResultTable: React.FC<ResultTableProps> = (Props) => {
@@ -42,16 +33,16 @@ const ResultTable: React.FC<ResultTableProps> = (Props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {fishResult.detections.map((result) => (
+          {fishResult.map((result, index) => (
             <TableRow
-              key={fishResult?.fishes[result?.detection]?.id}
+              key={index}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
-              <TableCell component="th" scope="row">{fishResult?.fishes[result?.detection]?.name}</TableCell>
-              <TableCell align="right">{fishResult?.fishes[result?.detection]?.family}</TableCell>
-              <TableCell align="right">{fishResult?.fishes[result?.detection]?.description.fr}</TableCell>
-              <TableCell align="right">{fishResult?.fishes[result?.detection]?.s_type}</TableCell>
-              <TableCell align="right">{fishResult?.fishes[result?.detection]?.s_type}</TableCell>
+              <TableCell component="th" scope="row">nom_scientifique</TableCell>
+              <TableCell align="right">{result.detection}</TableCell>
+              <TableCell align="right">family</TableCell>
+              <TableCell align="right">description</TableCell>
+              <TableCell align="right">s_type</TableCell>
             </TableRow>
           ))}
         </TableBody>
