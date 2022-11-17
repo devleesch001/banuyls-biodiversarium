@@ -46,9 +46,7 @@ def decode_auth_token(auth_token):
 
 def check_token(request):
     # get the auth token
-    auth_header = request.headers.get('Authorization')
-    if auth_header:
-        auth_token = auth_header
+    auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = decode_auth_token(auth_token)
         if not isinstance(resp, str):

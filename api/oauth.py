@@ -1,11 +1,28 @@
 def init(db):
+    class Role(db.Model):
+        name=db.Column(db.String(50), primary_key=True)
+
+        def __init__(self, name):
+            self.name = name
+
     class Grant(db.Model):
         id=db.Column(db.Integer, primary_key=True)
         user_id = db.Column(
             db.Integer, db.ForeignKey('user.id')
         )
 
-        grant=db.Column(db.String(50))
+        grant=db.Column(db.String(50), db.ForeignKey('role.name'))
+
+        def __init__(self, user, name):
+            self.user_id=user
+            self.grant=name
+
+        def toDict(self):
+            return {
+                "id":self.id,
+                "user_id":self.user_id,
+                "grant":self.grant
+            }
     
     class User(db.Model):
         id = db.Column(db.Integer, primary_key=True)
@@ -17,6 +34,13 @@ def init(db):
         def __init__(self, user, passw):
             self.username = user
             self.password=passw
+
+        def toDict(self):
+            return {
+                "id":self.id,
+                "username":self.username,
+                "active":self.is_active
+            }
             
         def get_id(self):
             return self.id
@@ -24,4 +48,4 @@ def init(db):
         def check_password(self, password):
             return password == self.password
 
-    return (User, Grant)
+    return (User, Grant, Role)

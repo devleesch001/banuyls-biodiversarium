@@ -18,14 +18,14 @@ from functools import wraps
 
 app = Flask(__name__, static_url_path='', static_folder="static")
 app.secret_key="nbvtobrnjrieqpnvhujl nrsipbnehqsbntrfqsli"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aquarium.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aquarium_test.db"
 
 db = SQLAlchemy(app)
 db.init_app(app)
 
 MOBILE_AI = "IMERIR"
 
-User, Grant=init(db)
+User, Grant, Role=init(db)
 
 def OK(result="Done"):
     return ({"data": result}, 200)
@@ -38,14 +38,6 @@ def KO(err="UNKNW"):
 def BadRequest(reason="UNKNW"):
     return ({"error": reason}, 400)
 
-def require_token(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not token_utils.check_token(request):
-            return redirect(url_for('login'), code=302)
-        return f(*args, **kwargs)
-    return decorated_function
-
 def auth(roles=[]):
     def decorator_wrapper(f):
         @wraps(f)
@@ -53,8 +45,11 @@ def auth(roles=[]):
             if not token_utils.check_token(request):
                 return BadRequest("NOTAUTH")
             token = token_utils.decode_auth_token(request.headers.get('Authorization'))
+            grants = Grant.query.filter_by(user_id=token["sub"]).all()
+            grants = [grant.grant for grant in grants]
+            print(grants)
             for role in roles:
-                if not token_utils.check_user_grants(token, role):
+                if not token_utils.check_user_grants(token, role) or role not in grants:
                     return BadRequest("NOTGRANT")
             return f(*args, **kwargs)
         return decorated_function
@@ -71,7 +66,8 @@ def login():
         user = User.query.filter_by(
             username=post_data.get('username'), password=post_data.get('password')
             ).first()
-        auth_token = token_utils.encode_auth_token(user.id)
+        grants = Grant.query.filter_by(user_id=user.id).all()
+        auth_token = token_utils.encode_auth_token(user.id, [grant.grant for grant in grants])
         if auth_token:
             return OK(auth_token)
     except Exception as e:
@@ -236,10 +232,49 @@ def analyzeTablet():
         return check[1]
     return OK(results)
 
-@app.route('/api', methods=["GET"])
+@app.route('/', methods=["GET"])
 def hello_world():  # put application's code here
-    return OK("hello world!")
+    return redirect(url_for("login"))
 
+@app.route("/api/users", methods=["GET"])
+@auth(["user_access"])
+def get_all_users():
+    return OK([user.toDict() for user in User.query.all()])
+
+@app.route("/api/user/<id>", methods=["POST"])
+@auth(["user_update"])
+def update_user(id):
+    user = User.query.filter_by(id=id).first()
+    if not user:
+        return BadRequest("NOUSER")
+    user.username = request.json["username"] if "username" in request.json else user.username
+    return OK()
+
+@app.route("/api/user/<id>", methods=["DELETE"])
+@auth(["user_delete"])
+def delete_user(id):
+    user = User.query.filter_by(id=id).first()
+    if not user:
+        return BadRequest("NOUSER")   
+    db.session.execute(        
+        delete(User).where(User.id == id)  
+    )
+    db.session.commit()
+    return OK()
+
+@app.route("/api/user", methods=["POST"])
+@auth(["user_create"])
+def create_user(id):
+    user = User.query.filter_by(username=request.json["username"]).first()
+    if user:
+        return BadRequest("USERALEXIST")  
+    user = User(
+        user=request.json["username"],
+        passw=request.json["password"],
+    )
+    db.session.add(user)
+    db.session.commit()
+    return OK()
 
 @app.route("/api/species", methods=["GET"])
 def species_list():
@@ -278,7 +313,7 @@ def autocmpl(tmp_name):
     # return OK(toList(species))
 
 @app.route("/api/species_create", methods=["POST"])
-@auth(["speccycreate"])
+@auth(["speccy_create"])
 def species_create():
     
     speccy = Species(
@@ -294,7 +329,7 @@ def species_create():
     return OK()
 
 @app.route("/api/species_delete/<id>", methods=["DELETE"])
-@auth(["speccydelete"])
+@auth(["speccy_delete"])
 def species_delete(id):
     if(len(toList(db.session.execute(
         select(Species).where(Species.id == id)).scalars())) == 0):
@@ -306,7 +341,7 @@ def species_delete(id):
     return OK()
 
 @app.route("/api/species_update", methods=["POST"])
-@auth(["speccyupdate"])
+@auth(["speccy_update"])
 def update_species():  
     if(len(toList(db.session.execute(
         db.select(Species).where(Species.id == request.json["id"])).scalars())) == 0):
@@ -326,7 +361,6 @@ def update_species():
     db.session.commit()
     return OK()
 
-
 if __name__ == "__main__":
     with open("../appconfig.json", "r") as conf:
         confdoc = json.loads(conf.read())
@@ -338,6 +372,24 @@ if __name__ == "__main__":
         if(User.query.filter_by(username="admin").first() is None):
             user = User("admin", "admin")
             db.session.add(user)
+            db.session.commit()
+
+            db.session.add(Role(name="user_access"))
+            db.session.add(Role(name="user_update"))
+            db.session.add(Role(name="user_create"))
+            db.session.add(Role(name="user_delete"))
+            db.session.add(Role(name="speccy_create"))
+            db.session.add(Role(name="speccy_update"))
+            db.session.add(Role(name="speccy_delete"))
+            db.session.commit()
+
+            db.session.add(Grant(user=user.id, name="user_access"))
+            db.session.add(Grant(user=user.id, name="user_update"))
+            db.session.add(Grant(user=user.id, name="user_create"))
+            db.session.add(Grant(user=user.id, name="user_delete"))
+            db.session.add(Grant(user=user.id, name="speccy_create"))
+            db.session.add(Grant(user=user.id, name="speccy_update"))
+            db.session.add(Grant(user=user.id, name="speccy_delete"))
             db.session.commit()
 
     app.run(host="0.0.0.0", port=args.port, debug=args.debug)
