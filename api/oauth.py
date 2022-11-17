@@ -30,11 +30,13 @@ def init(db):
         id = db.Column(db.Integer, primary_key=True)
 
         username = db.Column(db.String(50))
+        email=db.Column(db.String(50))
         password = db.Column(db.String(50))
         is_active = db.Column(db.Boolean, default=True)
 
-        def __init__(self, user, passw):
+        def __init__(self, user, email, passw):
             self.username = user
+            self.email = email
             self.password=passw
 
         def toDict(self):
