@@ -8,7 +8,7 @@ import time
 import threading
 import requests
 import asyncio
-
+import argparse
 
 app = FastAPI(docs_url="/ia/docs", redoc_url=None)
 # app = FastAPI()
@@ -117,6 +117,13 @@ class LiveDetectionThread(threading.Thread):
 
 
 if __name__ == "__main__":
-    config = uvicorn.Config("main:app", host="0.0.0.0", port=5000, log_level="debug", reload=True)
+    parser = argparse.ArgumentParser(description="Fast API")
+    parser.add_argument("-p", "--port", default=80, type=int, help="port number")
+    parser.add_argument("--log_level", default="info", type=str, help="Log level info : 'critical', 'error', 'warning', 'info', 'debug', 'trace'")
+    parser.add_argument("--reload", default=False, type=bool, help="auto reload")
+    args = parser.parse_args()
+    
+    config = uvicorn.Config("main:app", host="0.0.0.0", port=args.port, log_level=args.log_level, reload=args.reload)
     server = uvicorn.Server(config)
     server.run()
+

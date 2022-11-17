@@ -12,4 +12,6 @@ RUN pip install seaborn thop
 
 COPY . .
 
+EXPOSE 80
+
 CMD [ "python", "./main.py" ]
