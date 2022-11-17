@@ -50,10 +50,13 @@ class Inferer:
             self.model(torch.zeros(1, 3, *self.img_size).to(self.device).type_as(next(self.model.model.parameters())))  # warmup
 
         # Load data
-        self.files = LoadData(source)
+        if source is not None:
+            self.files = LoadData(source)
         self.source = source
 
-
+    def set_content(self,source):
+        self.files = LoadData(source)
+        self.source = source
 
     def model_switch(self, model, img_size):
         ''' Model switch to deploy status '''
