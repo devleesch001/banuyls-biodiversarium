@@ -92,7 +92,7 @@ export default {
             .catch((err)=>{
                 if("error" in err && err.error=="NOTAUTH")
                 {                    
-                    window.location.replace(BASE_API_URL+"auth/login");
+                    window.location.replace(BASE_API_URL+"admin/auth/login");
                     return;
                 }
             })
@@ -102,7 +102,7 @@ export default {
             }).then((data)=>{                
                 if("error" in data && data.error=="NOTAUTH")
                 {                    
-                    window.location.replace(BASE_API_URL+"auth/login?lostauth");
+                    window.location.replace(BASE_API_URL+"admin/auth/login?lostauth");
                     return;
                 }
             })

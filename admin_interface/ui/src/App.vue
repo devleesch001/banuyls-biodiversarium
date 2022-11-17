@@ -47,7 +47,7 @@ export default {
   {
     if(!localStorage.getItem("token"))
     {           
-      window.location.replace(BASE_API_URL+"auth/login");
+      window.location.replace(BASE_API_URL+"admin/auth/login");
     }
     else{
       setInterval(()=>{
@@ -59,7 +59,7 @@ export default {
         let init = { method: 'GET',
                     headers: headers};
 
-        var request = new Request(BASE_API_URL+'auth/check', init);
+        var request = new Request(BASE_API_URL+'admin/auth/check', init);
 
         fetch(request,init)
         .catch((err)=>{
@@ -71,7 +71,7 @@ export default {
         .then((data)=>{
           if(!data.data)
           {            
-            window.location.replace(BASE_API_URL+"auth/login?lostauth");
+            window.location.replace(BASE_API_URL+"admin/auth/login?lostauth");
           }
         })
       }, 1000*60*20)
@@ -84,7 +84,7 @@ export default {
     logout()
     {
       removeToken();
-      window.location.replace(BASE_API_URL+"auth/login");
+      window.location.replace(BASE_API_URL+"admin/auth/login");
     }
   },
   computed:{

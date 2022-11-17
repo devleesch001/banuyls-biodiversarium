@@ -15,10 +15,13 @@ import imerir_controller
 from oauth import init
 import token_utils
 from functools import wraps
+import roles
 
 app = Flask(__name__, static_url_path='', static_folder="static")
 app.secret_key="nbvtobrnjrieqpnvhujl nrsipbnehqsbntrfqsli"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aquarium_test.db"
+
+with open("../appconfig.json", "r") as conf:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///"+json.loads(conf.read())["database"]+".db"
 
 db = SQLAlchemy(app)
 db.init_app(app)
@@ -55,7 +58,7 @@ def auth(roles=[]):
         return decorated_function
     return decorator_wrapper
 
-@app.route("/auth/login", methods=["GET", "POST"])
+@app.route("/admin/auth/login", methods=["GET", "POST"])
 def login():
     if request.method=="GET":
         session["template"]="connection"
@@ -74,11 +77,11 @@ def login():
         print(e)
     return BadRequest("ERRAUTH")
 
-@app.route("/auth/check", methods=["GET"])
+@app.route("/admin/auth/check", methods=["GET"])
 def checktoken():
     return OK(token_utils.check_token(request))
 
-@app.route("/dashboard", methods=["GET"])
+@app.route("/admin/dashboard", methods=["GET"])
 def dashboard():
     session["template"]="ui"
     file = app.send_static_file('ui/index.html')
@@ -102,7 +105,6 @@ def send_font(file):
     return app.send_static_file(session["template"]+'/fonts/'+file)
 
 CORS(app)
-
 
 def checks(request_data):
     if 'content' not in request_data:
@@ -233,16 +235,20 @@ def analyzeTablet():
     return OK(results)
 
 @app.route('/', methods=["GET"])
-def hello_world():  # put application's code here
+def root():  # put application's code here
     return redirect(url_for("login"))
 
+@app.route("/api")
+def api_status():
+    return OK({"status":"running"})
+
 @app.route("/api/users", methods=["GET"])
-@auth(["user_access"])
+@auth([roles.USER_ACCESS])
 def get_all_users():
     return OK([user.toDict() for user in User.query.all()])
 
 @app.route("/api/user/<id>", methods=["POST"])
-@auth(["user_update"])
+@auth([roles.USER_UPDATE])
 def update_user(id):
     user = User.query.filter_by(id=id).first()
     if not user:
@@ -251,7 +257,7 @@ def update_user(id):
     return OK()
 
 @app.route("/api/user/<id>", methods=["DELETE"])
-@auth(["user_delete"])
+@auth([roles.USER_DELETE])
 def delete_user(id):
     user = User.query.filter_by(id=id).first()
     if not user:
@@ -263,7 +269,7 @@ def delete_user(id):
     return OK()
 
 @app.route("/api/user", methods=["POST"])
-@auth(["user_create"])
+@auth([roles.USER_CREATE])
 def create_user(id):
     user = User.query.filter_by(username=request.json["username"]).first()
     if user:
@@ -313,7 +319,7 @@ def autocmpl(tmp_name):
     # return OK(toList(species))
 
 @app.route("/api/species_create", methods=["POST"])
-@auth(["speccy_create"])
+@auth([roles.SPECCY_CREATE])
 def species_create():
     
     speccy = Species(
@@ -329,7 +335,7 @@ def species_create():
     return OK()
 
 @app.route("/api/species_delete/<id>", methods=["DELETE"])
-@auth(["speccy_delete"])
+@auth([roles.SPECCY_DELETE])
 def species_delete(id):
     if(len(toList(db.session.execute(
         select(Species).where(Species.id == id)).scalars())) == 0):
@@ -341,7 +347,7 @@ def species_delete(id):
     return OK()
 
 @app.route("/api/species_update", methods=["POST"])
-@auth(["speccy_update"])
+@auth([roles.SPECCY_UPDATE])
 def update_species():  
     if(len(toList(db.session.execute(
         db.select(Species).where(Species.id == request.json["id"])).scalars())) == 0):
@@ -374,22 +380,22 @@ if __name__ == "__main__":
             db.session.add(user)
             db.session.commit()
 
-            db.session.add(Role(name="user_access"))
-            db.session.add(Role(name="user_update"))
-            db.session.add(Role(name="user_create"))
-            db.session.add(Role(name="user_delete"))
-            db.session.add(Role(name="speccy_create"))
-            db.session.add(Role(name="speccy_update"))
-            db.session.add(Role(name="speccy_delete"))
+            db.session.add(Role(name=roles.USER_ACCESS, display_name="Access to users"))
+            db.session.add(Role(name=roles.USER_UPDATE, display_name="Update a user"))
+            db.session.add(Role(name=roles.USER_CREATE, display_name="Create a user"))
+            db.session.add(Role(name=roles.USER_DELETE, display_name="Delete a user"))
+            db.session.add(Role(name=roles.SPECCY_CREATE, display_name="Create a speccy"))
+            db.session.add(Role(name=roles.SPECCY_UPDATE, display_name="Update a speccy"))
+            db.session.add(Role(name=roles.SPECCY_DELETE, display_name="Delete a speccy"))
             db.session.commit()
 
-            db.session.add(Grant(user=user.id, name="user_access"))
-            db.session.add(Grant(user=user.id, name="user_update"))
-            db.session.add(Grant(user=user.id, name="user_create"))
-            db.session.add(Grant(user=user.id, name="user_delete"))
-            db.session.add(Grant(user=user.id, name="speccy_create"))
-            db.session.add(Grant(user=user.id, name="speccy_update"))
-            db.session.add(Grant(user=user.id, name="speccy_delete"))
+            db.session.add(Grant(user=user.id, name=roles.USER_ACCESS))
+            db.session.add(Grant(user=user.id, name=roles.USER_UPDATE))
+            db.session.add(Grant(user=user.id, name=roles.USER_CREATE))
+            db.session.add(Grant(user=user.id, name=roles.USER_DELETE))
+            db.session.add(Grant(user=user.id, name=roles.SPECCY_CREATE))
+            db.session.add(Grant(user=user.id, name=roles.SPECCY_UPDATE))
+            db.session.add(Grant(user=user.id, name=roles.SPECCY_DELETE))
             db.session.commit()
 
     app.run(host="0.0.0.0", port=args.port, debug=args.debug)

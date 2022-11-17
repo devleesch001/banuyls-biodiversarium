@@ -1,0 +1,7 @@
+USER_ACCESS = "user_access"
+USER_UPDATE = "user_update"
+USER_CREATE = "user_create"
+USER_DELETE = "user_delete"
+SPECCY_CREATE = "cpeccy_create"
+SPECCY_UPDATE = "speccy_update"
+SPECCY_DELETE = "speccy_delete"

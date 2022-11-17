@@ -1,9 +1,11 @@
 def init(db):
     class Role(db.Model):
         name=db.Column(db.String(50), primary_key=True)
+        display_name=db.Column(db.String(50))
 
-        def __init__(self, name):
+        def __init__(self, name, display_name):
             self.name = name
+            self.display_name = display_name
 
     class Grant(db.Model):
         id=db.Column(db.Integer, primary_key=True)
