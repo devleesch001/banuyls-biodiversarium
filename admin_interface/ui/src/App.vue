@@ -9,7 +9,7 @@
       <v-btn icon @click="logout" style="margin-right:30px"><v-icon>mdi-power</v-icon></v-btn>
     </v-app-bar>
     <v-main>
-      <SpeciesPannelVue v-if="menuselection==0"></SpeciesPannelVue>
+      <SpeciesPannelVue v-if="menuselection==0" style="margin-bottom:5%"></SpeciesPannelVue>
       <StatsPannelVue v-if="menuselection==1"></StatsPannelVue>
     </v-main>
     <v-bottom-navigation
@@ -34,7 +34,7 @@
 
 import SpeciesPannelVue from './components/SpeciesPannel.vue'
 import StatsPannelVue from './components/StatsPannel.vue'
-import { BASE_API_URL } from './types/AppConstants';
+import { BASE_API_URL, getToken, removeToken } from './types/AppConstants';
 
 export default {
   name: 'App',
@@ -47,14 +47,14 @@ export default {
   {
     if(!localStorage.getItem("token"))
     {           
-      window.location.replace("http://localhost:5000/auth/login");
+      window.location.replace(BASE_API_URL+"auth/login");
     }
     else{
       setInterval(()=>{
         let headers = new Headers();
         headers.append("Content-type", "application/json")
         headers.append("Access-Control-Allow-Origin", "*")
-        headers.append("Authorization", localStorage.getItem("token"))
+        headers.append("Authorization", getToken())
 
         let init = { method: 'GET',
                     headers: headers};
@@ -71,7 +71,7 @@ export default {
         .then((data)=>{
           if(!data.data)
           {            
-            window.location.replace("http://localhost:5000/auth/login?lostauth");
+            window.location.replace(BASE_API_URL+"auth/login?lostauth");
           }
         })
       }, 1000*60*20)
@@ -83,8 +83,8 @@ export default {
   methods:{
     logout()
     {
-      localStorage.removeItem("token");
-      window.location.replace("http://localhost:5000/auth/login");
+      removeToken();
+      window.location.replace(BASE_API_URL+"auth/login");
     }
   },
   computed:{

@@ -1,7 +1,7 @@
 from io import BytesIO
 import requests
 
-IA_URL = "http://10.3.2.105:5000"
+IA_URL = "http://10.3.2.105:80"
 
 def get_labels(content):
     files = {

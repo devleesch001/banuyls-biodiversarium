@@ -36,6 +36,7 @@
 </template>
 
 <script>
+import { BASE_URL, setToken } from "./constants"
 
 export default {
   name: 'App',
@@ -72,7 +73,7 @@ export default {
         let init = { method: 'POST',
                   headers: headers,
                 body:JSON.stringify(details)};
-        var request = new Request('http://localhost:5000/auth/login', init);
+        var request = new Request(BASE_URL+'auth/login', init);
         fetch(request,init)
         .catch((err)=>{       
           console.log(err)
@@ -90,8 +91,8 @@ export default {
             }
             return
           }
-          localStorage.setItem("token", data.data)
-          window.location.replace("http://localhost:5000/dashboard");
+          setToken(data.data)
+          window.location.replace(BASE_URL+"dashboard");
         })
       }
     }

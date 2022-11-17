@@ -43,6 +43,7 @@
 import SpeccyCardVue from './SpeccyCard.vue';
 import SpeccyDialogVue from './SpeccyDialog.vue';
 import { BASE_API_URL } from '@/types/AppConstants';
+import { getToken } from '../types/AppConstants';
 
 export default {
     components:{
@@ -78,7 +79,7 @@ export default {
             let headers = new Headers();
             headers.append("Content-type", "application/json")
             headers.append("Access-Control-Allow-Origin", "*")
-            headers.append("Authorization", localStorage.getItem("token"))
+            headers.append("Authorization",  getToken())
 
             let init = { method: 'POST',
                         headers: headers,
@@ -91,7 +92,7 @@ export default {
             .catch((err)=>{
                 if("error" in err && err.error=="NOTAUTH")
                 {                    
-                    window.location.replace("http://localhost:5000/auth/login");
+                    window.location.replace(BASE_API_URL+"auth/login");
                     return;
                 }
             })
@@ -101,7 +102,7 @@ export default {
             }).then((data)=>{                
                 if("error" in data && data.error=="NOTAUTH")
                 {                    
-                    window.location.replace("http://localhost:5000/auth/login?lostauth");
+                    window.location.replace(BASE_API_URL+"auth/login?lostauth");
                     return;
                 }
             })

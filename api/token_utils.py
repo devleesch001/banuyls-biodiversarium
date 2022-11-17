@@ -3,7 +3,7 @@ import jwt
 
 SECRET_KEY = "L\xed1y\xff5\xfb\xed\xa1\xd8&\xf9r\xc6c-[\xdfNJ\x17\x07''"
 
-def encode_auth_token(user_id):
+def encode_auth_token(user_id, grants=[]):
     """
     Generates the Auth Token
     :return: string
@@ -12,7 +12,8 @@ def encode_auth_token(user_id):
         payload = {
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=0),
             'iat': datetime.datetime.utcnow(),
-            'sub': user_id
+            'sub': user_id,
+            'scope':":".join(grants)
         }
         token = jwt.encode(
             payload,
@@ -22,6 +23,9 @@ def encode_auth_token(user_id):
         return token
     except Exception as e:
         return e
+
+def check_user_grants(token, g):
+    return g in token["scope"].split(":")
 
 def decode_auth_token(auth_token):
     """
@@ -43,8 +47,6 @@ def decode_auth_token(auth_token):
 def check_token(request):
     # get the auth token
     auth_header = request.headers.get('Authorization')
-    print("hey")
-    print(auth_header)
     if auth_header:
         auth_token = auth_header
     if auth_token:

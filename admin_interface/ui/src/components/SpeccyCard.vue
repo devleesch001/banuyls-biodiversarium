@@ -79,6 +79,7 @@
 <script>
 import SpeccyDialogVue from './SpeccyDialog.vue'
 import { BASE_API_URL, TYPES_COLOR, TYPES_ICON } from '@/types/AppConstants'
+import { getToken } from '../types/AppConstants'
 
 export default {
     props:{
@@ -104,7 +105,7 @@ export default {
     methods:{
         delete(){
             fetch(BASE_API_URL+'api/species_delete/'+this.s_id, {method:"DELETE", headers:{
-                "Authorization": localStorage.getItem("token")
+                "Authorization": getToken()
             }})
             .catch((err)=>{
                 console.log(err)
@@ -117,7 +118,7 @@ export default {
                 console.log(data)
                 if("error" in data && data.error=="NOTAUTH")
                 {                    
-                    window.location.replace("http://localhost:5000/auth/login?lostauth");
+                    window.location.replace(BASE_API_URL+"auth/login?lostauth");
                     return;
                 }
             })
@@ -128,7 +129,7 @@ export default {
             let headers = new Headers();
             headers.append("Content-type", "application/json")
             headers.append("Access-Control-Allow-Origin", "*")
-            headers.append("Authorization", localStorage.getItem("token"))
+            headers.append("Authorization", getToken())
 
             let init = { method: 'POST',
                         headers: headers,
@@ -140,7 +141,7 @@ export default {
             .catch((err)=>{
                 if("error" in err && err.error=="NOTAUTH")
                 {                    
-                    window.location.replace("http://localhost:5000/auth/login?lostauth");
+                    window.location.replace(BASE_API_URL+"auth/login?lostauth");
                     return;
                 }
             })

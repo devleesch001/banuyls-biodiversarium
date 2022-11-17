@@ -1,11 +1,11 @@
 def init(db):
-    class Token(db.Model):
+    class Grant(db.Model):
+        id=db.Column(db.Integer, primary_key=True)
         user_id = db.Column(
-            db.Integer, db.ForeignKey('user.id'), primary_key=True
+            db.Integer, db.ForeignKey('user.id')
         )
 
-        access_token = db.Column(db.String(255), unique=True)
-        expires = db.Column(db.DateTime)
+        grant=db.Column(db.String(50))
     
     class User(db.Model):
         id = db.Column(db.Integer, primary_key=True)
@@ -24,4 +24,4 @@ def init(db):
         def check_password(self, password):
             return password == self.password
 
-    return (User, Token)
+    return (User, Grant)

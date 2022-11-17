@@ -1,4 +1,6 @@
-const BASE_API_URL="http://localhost:5000/"
+import config from "../../../../appconfig.json"
+
+const BASE_API_URL="http://localhost:"+config["port"]+"/"
 
 const TYPES_ICON = {
     fixed:"tree",
@@ -10,4 +12,14 @@ const TYPES_COLOR = {
     fixed:"#ffe28c",
 }
 
-export {BASE_API_URL, TYPES_ICON, TYPES_COLOR}
+function getToken()
+{
+    return localStorage.getItem("token")
+}
+
+function removeToken()
+{
+    localStorage.removeItem("token")
+}
+
+export {BASE_API_URL, TYPES_ICON, TYPES_COLOR, getToken, removeToken}

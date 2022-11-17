@@ -25,7 +25,7 @@ db.init_app(app)
 
 MOBILE_AI = "IMERIR"
 
-User, Token=init(db)
+User, Grant=init(db)
 
 def OK(result="Done"):
     return ({"data": result}, 200)
@@ -45,14 +45,20 @@ def require_token(f):
             return redirect(url_for('login'), code=302)
         return f(*args, **kwargs)
     return decorated_function
-    
-def auth(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not token_utils.check_token(request):
-            return BadRequest("NOTAUTH")
-        return f(*args, **kwargs)
-    return decorated_function
+
+def auth(roles=[]):
+    def decorator_wrapper(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not token_utils.check_token(request):
+                return BadRequest("NOTAUTH")
+            token = token_utils.decode_auth_token(request.headers.get('Authorization'))
+            for role in roles:
+                if not token_utils.check_user_grants(token, role):
+                    return BadRequest("NOTGRANT")
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator_wrapper
 
 @app.route("/auth/login", methods=["GET", "POST"])
 def login():
@@ -272,7 +278,7 @@ def autocmpl(tmp_name):
     # return OK(toList(species))
 
 @app.route("/api/species_create", methods=["POST"])
-@auth
+@auth(["speccycreate"])
 def species_create():
     
     speccy = Species(
@@ -288,7 +294,7 @@ def species_create():
     return OK()
 
 @app.route("/api/species_delete/<id>", methods=["DELETE"])
-@auth
+@auth(["speccydelete"])
 def species_delete(id):
     if(len(toList(db.session.execute(
         select(Species).where(Species.id == id)).scalars())) == 0):
@@ -300,7 +306,7 @@ def species_delete(id):
     return OK()
 
 @app.route("/api/species_update", methods=["POST"])
-@auth
+@auth(["speccyupdate"])
 def update_species():  
     if(len(toList(db.session.execute(
         db.select(Species).where(Species.id == request.json["id"])).scalars())) == 0):
@@ -322,9 +328,11 @@ def update_species():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Flask API")
-    parser.add_argument("-p", "--port", default=80, type=int, help="port number")
-    parser.add_argument("-d", "--debug", default=False, type=bool, help="Debug")
+    with open("../appconfig.json", "r") as conf:
+        confdoc = json.loads(conf.read())
+        parser = argparse.ArgumentParser(description="Flask API")
+        parser.add_argument("-p", "--port", default=confdoc["port"], type=int, help="port number")
+        parser.add_argument("-d", "--debug", default=confdoc["debug"], type=bool, help="Debug")
     args = parser.parse_args()
     with app.app_context():
         if(User.query.filter_by(username="admin").first() is None):
