@@ -19,6 +19,9 @@ API_VERSION = "v1"
 inferer_glob = Inferer(None, "weights/best_ckpt.pt", 0, "fishDataset/data.yaml", [416,416], False)
 inferer_lock = threading.Lock()
 
+@app.get(f"/ia")
+async def root():
+    return {"data":{"status":"running"}}
 
 @app.post(f"/ia/{API_VERSION}/image-detection/")
 # @app.post(f"/{API_VERSION}/image-detection/")
