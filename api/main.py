@@ -87,20 +87,20 @@ def dashboard():
     file = app.send_static_file('ui/index.html')
     return file
 
-@app.route('/<path:file>')
+@app.route('/admin/<path:file>')
 def send_from_root(file):
     print(session["template"]+'/'+file)
     return app.send_static_file(session["template"]+'/'+file)
 
-@app.route('/js/<path:file>')
+@app.route('/admin/js/<path:file>')
 def send_js(file):
     return app.send_static_file(session["template"]+'/js/'+file)
 
-@app.route('/css/<path:file>')
+@app.route('/admin/css/<path:file>')
 def send_css(file):
     return app.send_static_file(session["template"]+'/css/'+file)
 
-@app.route('/fonts/<path:file>')
+@app.route('/admin/fonts/<path:file>')
 def send_font(file):
     return app.send_static_file(session["template"]+'/fonts/'+file)
 
@@ -256,14 +256,14 @@ def update_user(id):
     user.username = request.json["username"] if "username" in request.json else user.username
     return OK()
 
-@app.route("/api/user/<id>", methods=["DELETE"])
+@app.route("/api/user/<name>", methods=["DELETE"])
 @auth([roles.USER_DELETE])
-def delete_user(id):
-    user = User.query.filter_by(id=id).first()
+def delete_user(name):
+    user = User.query.filter_by(name=name).first()
     if not user:
         return BadRequest("NOUSER")   
     db.session.execute(        
-        delete(User).where(User.id == id)  
+        delete(User).where(User.name == name)  
     )
     db.session.commit()
     return OK()
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     with app.app_context():
         if(User.query.filter_by(username="admin").first() is None):
-            user = User("admin", "admin")
+            user = User("admin", "adming@admin.com", "admin")
             db.session.add(user)
             db.session.commit()
 
