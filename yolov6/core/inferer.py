@@ -155,6 +155,9 @@ class Inferer:
                             save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
                             vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                         vid_writer.write(img_src)
+            else:
+                if len(det):
+                    det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
             for detected_element in det:
                 *xyxy, conf, cls = detected_element
                 class_name = self.class_names[int(cls)]
@@ -245,6 +248,9 @@ class Inferer:
                         cv2.imshow(str(img_path), img_src)
                         cv2.waitKey(1)  # 1 millisecond
 
+                else:
+                    if len(det):
+                        det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
                 for detected_element in det:
                     *xyxy, conf, cls = detected_element
                     class_name = self.class_names[int(cls)]
