@@ -22,10 +22,11 @@ const MoreInfoButton: React.FC<moreInfoButtonProps> = ({}) => {
         return <> <Button onClick={handleClickButton} 
         variant="outlined"
         style={{
-                marginTop: 0,
-                marginRight: 0,
-                marginLeft: 0,
-                borderRadius: 25,
+                marginTop: 50,
+                marginLeft: 30,
+                //borderRadius: 25,
+                color:'white',
+                backgroundColor:'rgba(173,216,230,0.5)',
         }}
        
         > <AddIcon/> </Button> 
