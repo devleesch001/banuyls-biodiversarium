@@ -47,39 +47,38 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
         </video>
                 <Logo/>
                 <Grid container spacing={1}>
-                        <Grid item xs={12} style={{
-                                position: 'absolute',
-                                left: '50%',
-                                top: '35%',
-                                transform: 'translate(-50%, -50%)',
-                                color:'rgba(255,255,255,1)',
-                                fontWeight:"bold",
-                                fontSize: '30px',
-                                fontFamily: 'italic',
-                                backgroundColor: 'rgba(189,195,199,0.5)',
-                                borderRadius:'10px' ,
-                        }}>
                                 <Button
+                                 style={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        top: '35%',
+                                        transform: 'translate(-50%, -50%)',
+                                        color:'rgba(255,255,255,1)',
+                                        fontWeight:"bold",
+                                        fontSize: '30px',
+                                        fontFamily: 'italic',
+                                        backgroundColor: 'rgba(189,195,199,0.5)',
+                                        borderRadius:'10px' ,
+                                }}
                                         variant='outlined'
                                         onClick={onClickCommencer}
                                 >
                                         Commencer l'expérience
                                 </Button>
-                        </Grid>
-                        <Grid item xs={12} style={{
-                                position: 'absolute',
-                                left: '50%',
-                                top: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                color:'rgba(255,255,255,1)',
-                                fontWeight:"bold" ,
-                                fontSize: '30px',
-                                fontFamily: 'italic',
-                                backgroundColor: 'rgba(189,195,199,0.5)',
-                                borderRadius:'10px' ,
-                                borderColor:'rgba(255, 255, 255, 1)',
-                        }}>
                                 <Select
+                                style={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        top: '50%',
+                                        transform: 'translate(-50%, -50%)',
+                                        color:'rgba(255,255,255,1)',
+                                        fontWeight:"bold" ,
+                                        fontSize: '30px',
+                                        fontFamily: 'italic',
+                                        backgroundColor: 'rgba(189,195,199,0.5)',
+                                        borderRadius:'10px' ,
+                                        borderColor:'rgba(255, 255, 255, 1)',
+                                }}
                                 labelId="camera-choice-select-label"
                                 id="camera-choice-select"
                                 value={cameraChoice.current}
@@ -89,7 +88,6 @@ const HomePageButton: React.FC<homePageButtonProps> = ({
                                         <MenuItem value={cameraChoiceEnum.OUT}>Caméra extérieure</MenuItem>
                                         <MenuItem value={cameraChoiceEnum.IN}>Caméra intérieure</MenuItem>
                                 </Select>
-                        </Grid>
                 </Grid>
                 
                 

@@ -50,7 +50,6 @@ const Cam: React.FC<CamProps> = (Props) => {
 
         const [counter, setCounter] = useState(0);
         const { fishResult, setFishResult, cameraChoice } = Props;
-        //const [originalImage, setOriginalImage] = useState<string>('');
         let originalImage = React.useRef('');
         let detectionsArray = React.useRef<detection[]>([]);
         let isAnalysing = React.useRef(false);
@@ -68,12 +67,8 @@ const Cam: React.FC<CamProps> = (Props) => {
         
                         const ctx = canvas.getContext('2d');
                         if(ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        //img.src = canvas.toDataURL('image/jpeg');
                         const imageB64 = canvas.toDataURL('image/jpeg');
-                        //setOriginalImage(imageB64);
                         originalImage.current = imageB64;
-                        //setImageRect(imageB64);
-                        //imageRect.current = imageB64;
                 }
         };
         
