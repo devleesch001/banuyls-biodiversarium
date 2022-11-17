@@ -247,18 +247,21 @@ def api_status():
 def get_all_users():
     return OK([user.toDict() for user in User.query.all()])
 
-@app.route("/api/user/<id>", methods=["POST"])
+@app.route("/api/user/<name>", methods=["POST"])
 @auth([roles.USER_UPDATE])
-def update_user(id):
-    user = User.query.filter_by(id=id).first()
+def update_user(name):
+    user = User.query.filter_by(iname=name).first()
     if not user:
         return BadRequest("NOUSER")
     user.username = request.json["username"] if "username" in request.json else user.username
+    user.email = request.json["email"] if "email" in request.json else user.email
     return OK()
 
 @app.route("/api/user/<name>", methods=["DELETE"])
 @auth([roles.USER_DELETE])
 def delete_user(name):
+    if name=="admin":
+        return BadRequest("NOTAUTH")
     user = User.query.filter_by(name=name).first()
     if not user:
         return BadRequest("NOUSER")   

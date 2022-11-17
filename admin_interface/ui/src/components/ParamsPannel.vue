@@ -61,7 +61,7 @@ export default {
                         headers: headers,
                         mode: 'cors'};
 
-            var request = new Request(BASE_API_URL+'api/users/'+user, init);
+            var request = new Request(BASE_API_URL+'api/user/'+user, init);
 
             fetch(request,init)
             .then((data)=>{
