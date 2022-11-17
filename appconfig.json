@@ -1,5 +1,5 @@
 {
     "port":80,
     "debug":false,
-    "database":"aquarium"
+    "database":"aquarium-test"
 }

@@ -11,6 +11,7 @@
     <v-main>
       <SpeciesPannelVue v-if="menuselection==0" style="margin-bottom:5%"></SpeciesPannelVue>
       <StatsPannelVue v-if="menuselection==1"></StatsPannelVue>
+      <ParamsPannelVue v-if="menuselection==2"></ParamsPannelVue>
     </v-main>
     <v-bottom-navigation
       v-model="menuselection"
@@ -26,6 +27,10 @@
         <v-icon>mdi-chart-bar</v-icon>
         <span>Stats</span>
       </v-btn>
+      <v-btn>
+        <v-icon>mdi-cog</v-icon>
+        <span>Params</span>
+      </v-btn>
     </v-bottom-navigation>
   </v-app>
 </template>
@@ -34,13 +39,14 @@
 
 import SpeciesPannelVue from './components/SpeciesPannel.vue'
 import StatsPannelVue from './components/StatsPannel.vue'
+import ParamsPannelVue from './components/ParamsPannel.vue';
 import { BASE_API_URL, getToken, removeToken } from './types/AppConstants';
 
 export default {
   name: 'App',
 
   components: {
-    SpeciesPannelVue,StatsPannelVue
+    SpeciesPannelVue,StatsPannelVue,ParamsPannelVue
   },
 
   created()
@@ -92,8 +98,7 @@ export default {
       switch (this.menuselection) {
           case 0: return '#9CADCC'
           case 1: return 'teal'
-          case 2: return 'brown'
-          case 3: return 'indigo'
+          case 2: return 'indigo'
           default: return 'blue-grey'
         }
     }
