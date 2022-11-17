@@ -20,7 +20,7 @@ services:
         networks:
             - fish-hub-network
             - back-fish-network
-            - analyze-fish-remork-network
+            - analyze-fish-network
             - born-network
             - video-network
 
@@ -43,14 +43,16 @@ services:
             - back-fish-network
             - analyze-fish-back-network
         volumes:
-            - "./back-fish/api:/usr/src/app"
+            - "./back-fish/api:/api"
 
     ia:
-        build: ./analyze-fish-remork
+        build: ./analyze-fish
         restart: always
         networks:
-            - analyze-fish-remork-network
+            - analyze-fish-network
             - analyze-fish-back-network
+        volumes:
+            - "./analyze-fish:/usr/src/app"
 
     born: 
         build: ./biodiversarium-bornfront/biodiversarium-bornfront
@@ -79,7 +81,7 @@ networks:
     back-fish-network:
         external: false
 
-    analyze-fish-remork-network:
+    analyze-fish-network:
         external: false
 
     analyze-fish-back-network:

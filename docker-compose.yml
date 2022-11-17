@@ -18,7 +18,7 @@ services:
         networks:
             - fish-hub-network
             - back-fish-network
-            - analyze-fish-remork-network
+            - analyze-fish-network
 
     certbot:
         image: certbot/certbot:latest
@@ -40,10 +40,10 @@ services:
             - analyze-fish-back-network
 
     ia:
-        build: ./analyze-fish-remork
+        build: ./analyze-fish
         restart: always
         networks:
-            - analyze-fish-remork-network
+            - analyze-fish-network
             - analyze-fish-back-network
 
 networks:
@@ -51,7 +51,7 @@ networks:
         external: false
     back-fish-network:
         external: false
-    analyze-fish-remork-network:
+    analyze-fish-network:
         external: false
     analyze-fish-back-network:
         external: false
