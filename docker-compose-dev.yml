@@ -63,15 +63,14 @@ services:
         volumes:
             - "./biodiversarium-bornfront/biodiversarium-bornfront:/usr/src/app"
 
-
-    # http-cors:
-    #     build: ./biodiversarium-bornfront/video-proxy
-    #     restart: always
-    #     networks:
-    #         - video-network
-    #     environment:
-    #         - PORT=80
-    #         - URL=http://localhost:8080/stream.ogg
+    http-cors:
+        build: ./biodiversarium-bornfront/video-proxy
+        restart: always
+        networks:
+            - video-network
+        environment:
+            - PORT=80
+            - URL=http://localhost:8080/stream.ogg
 
 networks:
     fish-hub-network:
