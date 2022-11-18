@@ -11,6 +11,10 @@ interface ResultTableProps {
   fishResult: {
     certainty: number,
     detection: string,
+    s_name: string,
+    s_type: string,
+    family: string,
+    description: string,
     position: { 
             bottomright: { x: number, y: number },
             topleft: { x: number, y: number }
@@ -21,15 +25,15 @@ interface ResultTableProps {
 const ResultTable: React.FC<ResultTableProps> = (Props) => {
   const { fishResult } = Props;
   return (
-    <TableContainer style={{height: '50%'}} component={Paper}>
+    <TableContainer style={{height: '100%'}} component={Paper}>
       <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
         <TableHead>
           <TableRow>
-            {/*<TableCell>Nom scientifique</TableCell>*/}
             <TableCell align="left">Nom</TableCell>
-            {/*<TableCell align="right">Famille</TableCell>*/}
+            <TableCell>Nom scientifique</TableCell>
+            <TableCell align="right">Famille</TableCell>
+            <TableCell align="right">Type</TableCell>
             <TableCell align="left">Description</TableCell>
-            {/*<TableCell align="right">Type</TableCell>*/}
             <TableCell align="left">Précision IA (%)</TableCell>
           </TableRow>
         </TableHead>
@@ -40,11 +44,11 @@ const ResultTable: React.FC<ResultTableProps> = (Props) => {
               key={index}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
-              {/*<TableCell component="th" scope="row">nom_scientifique</TableCell>*/}
-              <TableCell align="left">{result.detection}</TableCell>
-              {/*<TableCell align="right">family</TableCell>*/}
-              <TableCell align="left">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum</TableCell>
-              {/*<TableCell align="right">s_type</TableCell>*/}
+              <TableCell component="th" scope="row" align="left">{result.detection}</TableCell>
+              <TableCell align="left">{result.s_name}</TableCell>
+              <TableCell align="left">{result.family}</TableCell>
+              <TableCell align="left">{result.s_type}</TableCell>
+              <TableCell align="left">{result.description}</TableCell>
               <TableCell align="left">{(result.certainty*100).toFixed(2)}%</TableCell>
             </TableRow>
           ) : '')}

@@ -11,6 +11,10 @@ interface CamProps {
         fishResult: {
                 certainty: number,
                 detection: string,
+                s_name: string,
+                s_type: string,
+                family: string,
+                description: string,
                 position: { 
                         bottomright: { x: number, y: number },
                         topleft: { x: number, y: number }
@@ -19,6 +23,10 @@ interface CamProps {
         setFishResult(value: {
                 certainty: number,
                 detection: string,
+                s_name: string,
+                s_type: string,
+                family: string,
+                description: string,
                 position: { 
                         bottomright: { x: number, y: number },
                         topleft: { x: number, y: number }
@@ -28,21 +36,16 @@ interface CamProps {
         cameraChoice: cameraChoiceEnum;
 }
 
-type toDetecodeStruct = {
-        class_name: string;
-        conf: number;
-        x1: number;
-        x2: number;
-        y1: number;
-        y2: number;
-};
-
 type detection = {
         x: number;
         y: number;
         width: number;
         height: number;
         label: string;
+        s_name: string,
+        s_type: string,
+        family: string,
+        description: string
         percentage: number;
 };
       
@@ -94,7 +97,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                         content: newImageRect
                                                                 })
                                                                 .then((res) => {
-                                                                        let data = res?.data?.data as {
+                                                                        let detections = res?.data?.data?.detections as {
                                                                                 certainty: number,
                                                                                 detection: string,
                                                                                 position: { 
@@ -103,9 +106,11 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                                 }
                                                                         }[];
 
+                                                                        let fishes = res?.data?.data?.fishes;
+
                                                                         let detectionArray: detection[] = [];
                                                                         
-                                                                        data?.map(c => {
+                                                                        detections?.map(c => {
                                                                                 let tmpDetection = {} as detection;
                                                                                 tmpDetection.x = c.position.topleft.x;
                                                                                 tmpDetection.y = c.position.topleft.y;
@@ -113,12 +118,16 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                                 tmpDetection.percentage = parseInt((c.certainty*100).toFixed(2));
                                                                                 tmpDetection.width = c.position.bottomright.x - c.position.topleft.x;
                                                                                 tmpDetection.height = c.position.bottomright.y - c.position.topleft.y;
+                                                                                tmpDetection.s_name = fishes[tmpDetection.label]?.s_name;
+                                                                                tmpDetection.s_type = fishes[tmpDetection.label]?.type;
+                                                                                tmpDetection.family = fishes[tmpDetection.label]?.family;
+                                                                                tmpDetection.description = fishes[tmpDetection.label]?.description?.fr;
+                                                                                
                                                                                 detectionArray.push(tmpDetection);
                                                                         });
 
-                                                                        detectionsArray.current = detectionArray;                                                                        
+                                                                        detectionsArray.current = detectionArray;
                                                                         isAnalysing.current = false;
-
                                                                 })
                                                                 .catch((err) => isAnalysing.current = false);
                                                         }
@@ -188,6 +197,10 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                 let result: {
                                                         certainty: number,
                                                         detection: string,
+                                                        s_name: string,
+                                                        s_type: string,
+                                                        family: string,
+                                                        description: string,
                                                         position: { 
                                                                 bottomright: { x: number, y: number },
                                                                 topleft: { x: number, y: number }
@@ -203,6 +216,10 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                 result.push({ 
                                                                         certainty: detected.percentage/100,
                                                                         detection: detected.label,
+                                                                        s_name: detected.s_name,
+                                                                        s_type: detected.s_type,
+                                                                        family: detected.family,
+                                                                        description: detected.description,
                                                                         position: { 
                                                                                 bottomright: { 
                                                                                         x: 0,
@@ -224,7 +241,19 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                 content: dataUrl
                                                         })
                                                         .then((res) => {
-                                                                let result = res?.data?.data as {
+                                                                let result: {
+                                                                        certainty: number,
+                                                                        detection: string,
+                                                                        s_name: string,
+                                                                        s_type: string,
+                                                                        family: string,
+                                                                        description: string,
+                                                                        position: { 
+                                                                                bottomright: { x: number, y: number },
+                                                                                topleft: { x: number, y: number }
+                                                                        }
+                                                                }[] = [];
+                                                                let detections = res?.data?.data?.detections as {
                                                                         certainty: number,
                                                                         detection: string,
                                                                         position: { 
@@ -232,7 +261,20 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                                 topleft: { x: number, y: number }
                                                                         }
                                                                 }[];
-        
+
+                                                                let fishes = res?.data?.data?.fishes;
+                                                                detections.map(detected => {
+                                                                        result.push({
+                                                                                certainty: detected.certainty,
+                                                                                detection: detected.detection,
+                                                                                s_name: fishes[detected.detection]?.s_name,
+                                                                                s_type: fishes[detected.detection]?.type,
+                                                                                family: fishes[detected.detection]?.family,
+                                                                                description: fishes[detected.detection]?.description?.fr,
+                                                                                position: detected.position
+                                                                        })
+                                                                });
+
                                                                 setFishResult(result);
                                                         })
                                                         .catch((err) => {

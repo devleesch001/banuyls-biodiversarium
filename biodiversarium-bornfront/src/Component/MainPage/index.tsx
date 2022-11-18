@@ -12,11 +12,15 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
     const [fishResult, setFishResult] = useState<{
         certainty: number,
         detection: string,
+        s_name: string,
+        s_type: string,
+        family: string,
+        description: string,
         position: { 
                 bottomright: { x: number, y: number },
                 topleft: { x: number, y: number }
         }
-      }[]>([]);
+    }[]>([]);
     
 
     const onClickCommencer = () => {
@@ -26,11 +30,15 @@ const MainPage: React.FC<mainPageProps> = ({ }) => {
     const fishResultHandler = (value: {
         certainty: number,
         detection: string,
+        s_name: string,
+        s_type: string,
+        family: string,
+        description: string,
         position: { 
                 bottomright: { x: number, y: number },
                 topleft: { x: number, y: number }
         }
-      }[]): void => {
+    }[]): void => {
         setFishResult(value);
     };
 
