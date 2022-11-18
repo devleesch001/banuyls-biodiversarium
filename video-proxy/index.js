@@ -5,9 +5,9 @@
 
 require('dotenv').config();
 
-const port = process.env.PORT || 8000
+const port = process.env.SERVER_PORT || 8000
 const inUrl = process.env.IN_URL || 'http://localhost:8080/in.ogg'
-const outUrl = process.env.OUT_URL || 'http://localhost:8080/out.ogg'
+const outUrl = process.env.OUT_URL || 'http://localhost:8081/out.ogg'
 const express = require('express');
 const axios = require('axios');
 const app = express();
