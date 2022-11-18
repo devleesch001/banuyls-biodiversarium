@@ -290,7 +290,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 {/*{cameraChoice.toString()}*/}                            
                                 <video 
                                         crossOrigin="anonymous"
-                                        src={cameraChoice.toString()}
+                                        src={require('../HomePageButton/PrincipalBackground.mp4')}
                                         controls={false}
                                         autoPlay={true}
                                         muted
