@@ -1,0 +1,13 @@
+version: "2.5"
+
+services:
+    born:
+        build:
+            context: biodiversarium-bornfront/
+            target: banuyls-biodiversarium-born-dev
+        restart: always
+        environment:
+            - PORT=80
+        #        - REACT_APP_API_URL=""
+        ports:
+            - "80:80"
