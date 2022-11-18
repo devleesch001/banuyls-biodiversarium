@@ -33,6 +33,8 @@ services:
             - fish-hub-network
         environment:
             - REACT_APP_API_URL=""
+        ports:
+            - "111:80"
 
     back-fish:
         build:
@@ -42,7 +44,10 @@ services:
         networks:
             - back-fish-network
             - analyze-fish-back-network
-        ports: "888:80"
+        ports:
+            - "222:80"
+        environment:
+            - IA_URL=http://ia/ia
 
     ia:
         build:
@@ -51,6 +56,8 @@ services:
         networks:
             - analyze-fish-network
             - analyze-fish-back-network
+        ports:
+            - "333:80"
 
     born:
         build:
@@ -63,7 +70,7 @@ services:
             - PORT=80
             - REACT_APP_API_URL=""
         ports:
-            - "777:80"
+            - "444:80"
 
     http-cors:
         build:
@@ -74,6 +81,8 @@ services:
         environment:
             - PORT=80
             - URL=http://localhost:8080/stream.ogg
+        ports:
+            - "555:80"
 
 networks:
     fish-hub-network:
