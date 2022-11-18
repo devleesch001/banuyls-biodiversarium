@@ -1,16 +1,16 @@
 [submodule "back-fish"]
 	path = back-fish
-	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/back-fish.git
+	url = https://gitlab.imerir.com/ia-biodiversarium-banyuls/back-fish.git
 	branch = main
 [submodule "web-appli"]
 	path = web-appli
-	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/web-appli.git
+	url = https://gitlab.imerir.com/ia-biodiversarium-banyuls/web-appli.git
 	branch = main
 [submodule "analyze-fish"]
 	path = analyze-fish
-	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/analyze-fish.git
+	url = https://gitlab.imerir.com/ia-biodiversarium-banyuls/analyze-fish.git
 	branch = main
 [submodule "biodiversarium-bornfront"]
 	path = biodiversarium-bornfront
-	url = git@ssh.gitlab.imerir.com:ia-biodiversarium-banyuls/biodiversarium-bornfront.git
+	url = https://gitlab.imerir.com/ia-biodiversarium-banyuls/biodiversarium-bornfront.git
 	branch = main
