@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Button } from '@mui/material';
 import {Logo} from '../'
 import { Grid, MenuItem } from '@mui/material';
 import Select from '@mui/material/Select';
-import { config } from '../../config';
+import { camera } from '../../config';
 
 export enum cameraChoiceEnum {
-        OUT = config.CAMERA_OUT,
-        IN = config.CAMERA_IN
-};
+        OUT = camera.CAMERA_OUT,
+        IN = camera.CAMERA_IN
+}
 
 interface homePageButtonProps {
         onClickCommencer: () => void;
