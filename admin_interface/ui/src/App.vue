@@ -38,7 +38,7 @@
 <script>
 
 import SpeciesPannelVue from './components/SpeciesPannel.vue'
-import StatsPannelVue from './components/StatsPannel.vue'
+//import StatsPannelVue from './components/StatsPannel.vue'
 import ParamsPannelVue from './components/ParamsPannel.vue';
 import { BASE_API_URL, getToken, removeToken } from './types/AppConstants';
 
@@ -46,7 +46,7 @@ export default {
   name: 'App',
 
   components: {
-    SpeciesPannelVue,StatsPannelVue,ParamsPannelVue
+    SpeciesPannelVue,ParamsPannelVue//,StatsPannelVue
   },
   async beforeUnmounted()
   {
