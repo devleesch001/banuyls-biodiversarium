@@ -33,7 +33,7 @@ interface CamProps {
                 }
         }[]): void;
 
-        cameraChoice: cameraChoiceEnum;
+    cameraChoice: cameraChoiceEnum;
 }
 
 type detection = {
@@ -48,17 +48,17 @@ type detection = {
         description: string
         percentage: number;
 };
-      
+
 const Cam: React.FC<CamProps> = (Props) => {
 
-        const [counter, setCounter] = useState(0);
-        const { fishResult, setFishResult, cameraChoice } = Props;
-        let originalImage = React.useRef('');
-        let detectionsArray = React.useRef<detection[]>([]);
-        let isAnalysing = React.useRef(false);
-        let hasSelected = React.useRef(false);
+    const [counter, setCounter] = useState(0);
+    const { fishResult, setFishResult, cameraChoice } = Props;
+    let originalImage = React.useRef('');
+    let detectionsArray = React.useRef<detection[]>([]);
+    let isAnalysing = React.useRef(false);
+    let hasSelected = React.useRef(false);
 
-        const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
+    const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
 
         const getVideo = () => {
                 let video = document.querySelector('video');
@@ -132,48 +132,48 @@ const Cam: React.FC<CamProps> = (Props) => {
                                                                 .catch((err) => isAnalysing.current = false);
                                                         }
 
-                                                        detectionsArray.current.map(rect => {
-                                                                if(ctx) {
-                                                                        ctx.fillStyle = "#FF0000";                                                                        
-                                                                        ctx.rect(rect.x, rect.y, rect.width, rect.height);
-                                                                        ctx.fillText(rect.label + ' ' + rect.percentage.toString() + '%', rect.x, rect.y+rect.height+10);
-                                                                        ctx.stroke();
-                                                                }
-                                                        });
-                                                        
-                                                        if(videoDisplay) {
-                                                                videoDisplay.onload = () => {
-                                                                        setIsImageLoading(false);
-                                                                }
-                                                                videoDisplay.src = canvas.toDataURL('image/jpeg');
-                                                                setIsImageLoading(true);
-                                                        }
-                                                        
-                                                }
-                                        };
-                                        img.src = newImageRect;
-                                        
-                                        
+                            detectionsArray.current.map(rect => {
+                                if(ctx) {
+                                    ctx.fillStyle = "#FF0000";
+                                    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                                    ctx.fillText(rect.label + ' ' + rect.percentage.toString() + '%', rect.x, rect.y+rect.height+10);
+                                    ctx.stroke();
                                 }
+                            });
+
+                            if(videoDisplay) {
+                                videoDisplay.onload = () => {
+                                    setIsImageLoading(false);
+                                }
+                                videoDisplay.src = canvas.toDataURL('image/jpeg');
+                                setIsImageLoading(true);
+                            }
+
                         }
-                }                
-        };
+                    };
+                    img.src = newImageRect;
 
-        useEffect(() => {
-                const interval = setInterval(() => {
-                        getVideo();
-                        displayRectVideo();
-                        setCounter((prevCounter) => prevCounter);
-                }, 1);
 
-                return () => clearInterval(interval);
-        }, []);
+                }
+            }
+        }
+    };
 
-        const onSelectFish = (sender: any) => {
-                hasSelected.current = true; // pour indiquer qu'un poisson a été sélectionné
+    useEffect(() => {
+        const interval = setInterval(() => {
+            getVideo();
+            displayRectVideo();
+            setCounter((prevCounter) => prevCounter);
+        }, 1);
 
-                let canvas = document.querySelector('canvas');
-                let img = document.createElement('img');
+        return () => clearInterval(interval);
+    }, []);
+
+    const onSelectFish = (sender: any) => {
+        hasSelected.current = true; // pour indiquer qu'un poisson a été sélectionné
+
+        let canvas = document.querySelector('canvas');
+        let img = document.createElement('img');
 
                 if (img && canvas && originalImage.current !== '') {
                         img.onload = () => {
@@ -320,27 +320,27 @@ const Cam: React.FC<CamProps> = (Props) => {
                                 <img id="videoDisplay" style={{backgroundColor: 'black', width: '100%', height: `${window.screen.width/3}px`}} onClick={onSelectFish}></img>
                         </Grid>
 
-                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2} id='canvas'>
-                                <canvas style={{width: '100%'}}></canvas>
-                        </Grid>
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2} id='canvas'>
+                <canvas style={{width: '100%'}}></canvas>
+            </Grid>
 
-                        <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
-                                {hasSelected.current ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un spécimen <TouchAppIcon/></i></h2>}
-                        </Grid>
+            <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
+                {hasSelected.current ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un spécimen <TouchAppIcon/></i></h2>}
+            </Grid>
 
-                        <Grid item xs={12}>
-                                {/*{cameraChoice.toString()}*/}                            
-                                <video 
-                                        crossOrigin="anonymous"
-                                        src={cameraChoice.toString()}
-                                        controls={false}
-                                        autoPlay={true}
-                                        muted
-                                        style={{backgroundColor: 'black' , width : '1px', height : '1px'}}
-                                        />
-                        </Grid>
-                   </Grid>
-        );
+            <Grid item xs={12}>
+                {/*{cameraChoice.toString()}*/}
+                <video
+                    crossOrigin="anonymous"
+                    src={cameraChoice.toString()}
+                    controls={false}
+                    autoPlay={true}
+                    muted
+                    style={{backgroundColor: 'black' , width : '1px', height : '1px'}}
+                />
+            </Grid>
+        </Grid>
+    );
 };
 
 export default Cam;
