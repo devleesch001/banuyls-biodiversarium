@@ -1,4 +1,4 @@
-const API_URL: string = process.env.REACT_APP_API_URL ?? ""
+const API_URL: string = process.env.REACT_APP_API_URL ?? "http://10.3.1.37"
 
 export enum camera {
     CAMERA_OUT='http://localhost:8000/out',
