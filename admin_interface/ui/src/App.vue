@@ -10,8 +10,8 @@
     </v-app-bar>
     <v-main>
       <SpeciesPannelVue v-if="menuselection==0" style="margin-bottom:5%"></SpeciesPannelVue>
-      <StatsPannelVue v-if="menuselection==1"></StatsPannelVue>
-      <ParamsPannelVue v-if="menuselection==2"></ParamsPannelVue>
+      <!--<StatsPannelVue v-if="menuselection==1"></StatsPannelVue>-->
+      <ParamsPannelVue v-if="menuselection==1"></ParamsPannelVue>
     </v-main>
     <v-bottom-navigation
       v-model="menuselection"
@@ -23,10 +23,10 @@
         <v-icon>mdi-jellyfish</v-icon>
         <span>Species</span>
       </v-btn>
-      <v-btn>
+      <!--<v-btn>
         <v-icon>mdi-chart-bar</v-icon>
         <span>Stats</span>
-      </v-btn>
+      </v-btn>-->
       <v-btn>
         <v-icon>mdi-cog</v-icon>
         <span>Params</span>

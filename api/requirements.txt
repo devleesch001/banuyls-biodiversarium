@@ -3,4 +3,4 @@ flask_cors
 flask_sqlalchemy
 requests
 google
-jwt
+pyjwt
