@@ -1,6 +1,6 @@
 import config from "../../../../appconfig.json"
 
-const BASE_API_URL="http://localhost:"+config["port"]+"/"
+const BASE_API_URL=window.location.protocol + "//" + window.location.host+":"+config["port"]+"/"
 
 const TYPES_ICON = {
     fixed:"tree",

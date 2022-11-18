@@ -1,6 +1,6 @@
 import config from "../../../appconfig.json"
 
-const BASE_URL="http://localhost:"+config["port"]+"/"
+const BASE_URL=window.location.protocol + "//" + window.location.host+":"+config["port"]+"/"
 
 function setToken(token)
 {

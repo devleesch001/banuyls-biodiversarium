@@ -7,6 +7,12 @@ def init(db):
             self.name = name
             self.display_name = display_name
 
+        def toDict(self):
+            return {
+                "name":self.name,
+                "display_name":self.display_name
+            }
+
     class Grant(db.Model):
         id=db.Column(db.Integer, primary_key=True)
         user_id = db.Column(
@@ -32,7 +38,7 @@ def init(db):
         username = db.Column(db.String(50))
         email=db.Column(db.String(50))
         password = db.Column(db.String(50))
-        is_active = db.Column(db.Boolean, default=True)
+        is_active = db.Column(db.Boolean, default=False)
 
         def __init__(self, user, email, passw):
             self.username = user
@@ -43,7 +49,18 @@ def init(db):
             return {
                 "id":self.id,
                 "username":self.username,
+                "password":self.password,
+                "email":self.email,
                 "active":self.is_active
+            }
+
+        def toDictPure(self):
+            return {
+                "id":self.id,
+                "username":self.username,
+                "email":self.email,
+                "is_active":self.is_active,
+                "password":self.password
             }
             
         def get_id(self):

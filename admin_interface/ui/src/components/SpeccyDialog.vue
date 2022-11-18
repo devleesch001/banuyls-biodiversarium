@@ -9,7 +9,7 @@
             color="primary"
             dark
             ><span 
-            style="margin-left:10px;">Add a new speccy</span></v-toolbar>
+            style="margin-left:10px;">Manage speccy</span></v-toolbar>
             <v-card-text>
                 <v-form
                 ref="newSpeccyForm"
@@ -39,7 +39,7 @@
                     v-model="newSpeccy.family"></v-text-field>
 
                     <div style="display:flex; justify-content: center; margin-bottom:30px;">
-                        <v-file-input label="Speccy image" @change="loadImage"></v-file-input>
+                        <v-file-input accept=".png, .jpg, .jpeg" label="Speccy image" @change="loadImage" ></v-file-input>
                     </div>
                     <v-img v-if="newSpeccy.image" :src="newSpeccy.image" ></v-img>
 

@@ -41,19 +41,25 @@ def KO(err="UNKNW"):
 def BadRequest(reason="UNKNW"):
     return ({"error": reason}, 400)
 
+def Unauthorized():
+    return ({"error":"NOTAUTH"}, 401)
+
+def Forbidden():
+    return ({"error":"NOTGRANT"}, 403)
+
 def auth(roles=[]):
     def decorator_wrapper(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if not token_utils.check_token(request):
-                return BadRequest("NOTAUTH")
             token = token_utils.decode_auth_token(request.headers.get('Authorization'))
+            user = User.query.filter_by(id=token["sub"]).first()
+            if not token_utils.check_token(request) or not user.is_active:
+                return Unauthorized()
             grants = Grant.query.filter_by(user_id=token["sub"]).all()
             grants = [grant.grant for grant in grants]
-            print(grants)
             for role in roles:
-                if not token_utils.check_user_grants(token, role) or role not in grants:
-                    return BadRequest("NOTGRANT")
+                if role not in grants:
+                    return Forbidden()
             return f(*args, **kwargs)
         return decorated_function
     return decorator_wrapper
@@ -72,10 +78,29 @@ def login():
         grants = Grant.query.filter_by(user_id=user.id).all()
         auth_token = token_utils.encode_auth_token(user.id, [grant.grant for grant in grants])
         if auth_token:
+            user.is_active = True            
+            db.session.execute(
+                update(User).values(user.toDictPure()).where(User.username == request.json["username"])   
+            )
+            db.session.commit()
             return OK(auth_token)
     except Exception as e:
         print(e)
     return BadRequest("ERRAUTH")
+
+@app.route("/admin/auth/logout", methods=["POST"])
+@auth()
+def logout():
+    id = token_utils.decode_auth_token(request.headers.get('Authorization'))["sub"]
+    user = User.query.filter_by(
+        id=id
+    ).first()
+    user.is_active = False            
+    db.session.execute(
+        update(User).values(user.toDictPure()).where(User.username == user.username)   
+    )
+    db.session.commit()
+    return OK()
 
 @app.route("/admin/auth/check", methods=["GET"])
 def checktoken():
@@ -232,7 +257,7 @@ def analyzeTablet():
         res["fishes"] = fishes
     else:
         return check[1]
-    return OK(results)
+    return OK(res)
 
 @app.route('/', methods=["GET"])
 def root():  # put application's code here
@@ -245,43 +270,93 @@ def api_status():
 @app.route("/api/users", methods=["GET"])
 @auth([roles.USER_ACCESS])
 def get_all_users():
-    return OK([user.toDict() for user in User.query.all()])
+    res=[]
+    for user in User.query.all():
+        data = user.toDict()
+        data["grants"]=[]
+        for grant in Grant.query.filter_by(user_id=user.id).all():
+            role = Role.query.filter_by(name=grant.grant).first()
+            if role is not None:
+                data["grants"].append(role.toDict())
+        res.append(data)
+    return OK(res)
 
-@app.route("/api/user/<name>", methods=["POST"])
-@auth([roles.USER_UPDATE])
-def update_user(name):
-    user = User.query.filter_by(iname=name).first()
+@app.route("/api/roles")
+@auth(roles=[roles.USER_ACCESS])
+def all_roles():
+    return OK([role.toDict() for role in Role.query.all()])
+
+@app.route("/api/user/<id>", methods=["POST"])
+@auth()
+def update_user(id):
+    user = User.query.filter_by(id=id).first()
     if not user:
         return BadRequest("NOUSER")
+    selfid = token_utils.decode_auth_token(request.headers.get('Authorization'))["sub"]
+    if roles.USER_UPDATE not in [grant.grant for grant in Grant.query.filter_by(user_id=selfid).all()]\
+    and selfid != id:
+        return Forbidden()
     user.username = request.json["username"] if "username" in request.json else user.username
     user.email = request.json["email"] if "email" in request.json else user.email
+    user.password = request.json["password"] if "password" in request.json else user.password
+    db.session.execute(
+        update(User).values(user.toDictPure()).where(User.username == request.json["username"])   
+    )
+    if user.username != "admin":
+        usergrants=[grant.grant for grant in Grant.query.filter_by(user_id=id).all()]
+        jsongrants = request.json["grants"]
+        print("database", usergrants)
+        print("request", jsongrants)
+        for grant in jsongrants:
+            if grant not in usergrants:
+                print("add grant", grant, "to user", id)
+                db.session.add(Grant(
+                    user=id,
+                    name=grant
+                ))
+        for grant in usergrants:
+            if grant not in jsongrants:
+                print("remove grant", grant, "to user", id)
+                db.session.execute(        
+                    delete(Grant).where(Grant.user_id == id).where(Grant.grant==grant)  
+                )
+    db.session.commit()
     return OK()
 
-@app.route("/api/user/<name>", methods=["DELETE"])
+@app.route("/api/user/<id>", methods=["DELETE"])
 @auth([roles.USER_DELETE])
-def delete_user(name):
-    if name=="admin":
-        return BadRequest("NOTAUTH")
-    user = User.query.filter_by(name=name).first()
+def delete_user(id):
+    user = User.query.filter_by(id=id).first()
     if not user:
-        return BadRequest("NOUSER")   
+        return BadRequest("NOUSER")  
+    if user.username=="admin":
+        return Forbidden() 
     db.session.execute(        
-        delete(User).where(User.name == name)  
+        delete(User).where(User.id == id)  
     )
     db.session.commit()
     return OK()
 
 @app.route("/api/user", methods=["POST"])
 @auth([roles.USER_CREATE])
-def create_user(id):
+def create_user():
     user = User.query.filter_by(username=request.json["username"]).first()
     if user:
         return BadRequest("USERALEXIST")  
     user = User(
         user=request.json["username"],
         passw=request.json["password"],
+        email=request.json["email"]
     )
     db.session.add(user)
+    db.session.commit()
+    
+    jsongrants = request.json["grants"]
+    for grant in jsongrants:
+        db.session.add(Grant(
+            user=user.id,
+            name=grant
+        ))
     db.session.commit()
     return OK()
 
@@ -379,6 +454,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     with app.app_context():
         if(User.query.filter_by(username="admin").first() is None):
+            user = User("test", "test@admin.com", "test")
+            db.session.add(user)
             user = User("admin", "adming@admin.com", "admin")
             db.session.add(user)
             db.session.commit()

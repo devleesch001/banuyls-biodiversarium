@@ -1,39 +1,42 @@
 <template>
-    <div>        
-        <v-btn icon
-        color="primary"
-        @click="dialog=true"
-        style="position:fixed; right:10px; bottom:65px; z-index: 1000;"
-        >
-            <v-icon>mdi-plus-box</v-icon>
-        </v-btn>
-        <v-container fluid style="width:70%;" v-if="render && speccies.length > 0">
-            <v-row dense>
-                <v-col v-for="o in speccies" :key="o.id" 
-                :cols="speccies.length%2 != 0 && speccies.indexOf(o) == speccies.length-1 ? 12 : 6">
-                    <SpeccyCardVue 
-                        :name="o.name"
-                        :type="o.type"
-                        :description="o.description"
-                        :family="o.family"
-                        :s_name="o.s_name"
-                        :s_id="o.id"
-                        :image="o.image"
-                        :id="'speccy_'+o.id">
-                    </SpeccyCardVue>
-                </v-col>
-            </v-row>    
-        </v-container>
-        <div v-else style="color:gray;">
-            <div style="display:flex; height:30%; position:absolute; transform: translate(-50%, -50%); left:50%; top:50%;  flex-direction: column; text-align: center; width:60%;">
-                <p style=" vertical-align: center; flex:1 1 auto;">No species registered yet</p>
-                <p style=" vertical-align: center; flex:1 1 auto;">Start adding a speccy to fill this screen up.</p>
-                <v-btn
-                style="vertical-align: center; flex:1 0 0;"
-                color="primary"
-                @click="dialog=true">add your first speccy</v-btn>
+    <div>
+        <div>        
+            <v-btn icon
+            color="primary"
+            @click="dialog=true"
+            style="position:fixed; right:10px; bottom:65px; z-index: 1000;"
+            >
+                <v-icon>mdi-plus-box</v-icon>
+            </v-btn>
+            <v-container fluid style="width:70%;" v-if="render && speccies.length > 0">
+                <v-row dense>
+                    <v-col v-for="o in speccies" :key="o.id" 
+                    :cols="speccies.length%2 != 0 && speccies.indexOf(o) == speccies.length-1 ? 12 : 6">
+                        <SpeccyCardVue 
+                            :updateMaker="componentKey" 
+                            :name="o.name"
+                            :type="o.type"
+                            :description="o.description"
+                            :family="o.family"
+                            :s_name="o.s_name"
+                            :s_id="o.id"
+                            :image="o.image"
+                            :id="'speccy_'+o.id">
+                        </SpeccyCardVue>
+                    </v-col>
+                </v-row>    
+            </v-container>
+            <div v-else style="color:gray;">
+                <div style="display:flex; height:30%; position:absolute; transform: translate(-50%, -50%); left:50%; top:50%;  flex-direction: column; text-align: center; width:60%;">
+                    <p style=" vertical-align: center; flex:1 1 auto;">No species registered yet</p>
+                    <p style=" vertical-align: center; flex:1 1 auto;">Start adding a speccy to fill this screen up.</p>
+                    <v-btn
+                    style="vertical-align: center; flex:1 0 0;"
+                    color="primary"
+                    @click="dialog=true">add your first speccy</v-btn>
+                </div>
+                <span style="position:absolute; bottom:77px; right:65px;">You can also use this button<v-icon>mdi-arrow-right-thick</v-icon></span>
             </div>
-            <span style="position:absolute; bottom:77px; right:65px;">You can also use this button<v-icon>mdi-arrow-right-thick</v-icon></span>
         </div>
         <SpeccyDialogVue :open="dialog" :onClose="()=>dialog=false" :OK="sendNewSpeccy"></SpeccyDialogVue>
     </div>
@@ -44,6 +47,7 @@ import SpeccyCardVue from './SpeccyCard.vue';
 import SpeccyDialogVue from './SpeccyDialog.vue';
 import { BASE_API_URL } from '@/types/AppConstants';
 import { getToken } from '../types/AppConstants';
+import { ref } from 'vue';
 
 export default {
     components:{
@@ -63,16 +67,13 @@ export default {
             dialog:false,
             render:true,
             updater:null,
+            componentKey: ref(0)
         }
     },
     methods:{
         refresh()
         {
-            /*
-            this.render = false
-            this.$nextTick(()=>{
-                this.render=true;
-            })*/
+            this.componentKey += 1;
         },
         async sendNewSpeccy(speccy)
         {         

@@ -48,7 +48,10 @@ export default {
   components: {
     SpeciesPannelVue,StatsPannelVue,ParamsPannelVue
   },
-
+  async beforeUnmounted()
+  {
+    this.logout()
+  },
   created()
   {
     if(!localStorage.getItem("token"))
@@ -87,8 +90,19 @@ export default {
     return {menuselection: 0}
   },
   methods:{
-    logout()
-    {
+    async logout()
+    {      
+      let headers = new Headers();
+      headers.append("Content-type", "application/json")
+      headers.append("Access-Control-Allow-Origin", "*")
+      headers.append("Authorization", getToken())
+
+      let init = { method: 'POST',
+                  headers: headers};
+
+      var request = new Request(BASE_API_URL+'admin/auth/logout', init);
+
+      await fetch(request,init);
       removeToken();
       window.location.replace(BASE_API_URL+"admin/auth/login");
     }

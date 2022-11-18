@@ -2,7 +2,7 @@
     <v-card class="mx-auto speccy-card" 
         outlined
         :color="allColors[type]">
-        <v-toolbar
+        <v-toolbar :key="componentKey"
         style="padding-left:2%; background-color: transparent;">
             <v-icon style="margin-right:10px;">mdi-{{allIcons[type]}}</v-icon>
             <v-card-title>{{name}}</v-card-title>
@@ -22,7 +22,7 @@
                 </div>
             </div>
         </v-toolbar>
-        <div v-if="image" class="speccy-subtitle">
+        <div v-if="image" class="speccy-subtitle" :key="componentKey">
             <div  style="margin-right:5%;" class="text-subtitle-1 speccy-scientific">
                 {{s_name}}
             </div>
@@ -80,6 +80,7 @@
 import SpeccyDialogVue from './SpeccyDialog.vue'
 import { BASE_API_URL, TYPES_COLOR, TYPES_ICON } from '@/types/AppConstants'
 import { getToken } from '../types/AppConstants'
+import { ref } from "vue"
 
 export default {
     props:{
@@ -89,7 +90,8 @@ export default {
         family:String,
         type:String,
         s_id:Number,
-        image:String
+        image:String,
+        updateMaker:Number
     },
     components:{
         SpeccyDialogVue
@@ -99,7 +101,14 @@ export default {
             deleteConfirm:false,
             modifyDialog:false,
             allIcons:TYPES_ICON,
-            allColors:TYPES_COLOR
+            componentKey:ref(0),
+            allColors: TYPES_COLOR
+        }
+    },
+    watch:{
+        updateMaker()
+        {
+            this.componentKey+=1
         }
     },
     methods:{
