@@ -7,7 +7,7 @@ import { config } from '../../config';
 
 export enum cameraChoiceEnum {
         OUT = config.CAMERA_OUT,
-        IN = config.CAMERA_IN,
+        IN = config.CAMERA_IN
 };
 
 interface homePageButtonProps {

@@ -146,10 +146,7 @@ const Cam: React.FC<CamProps> = (Props) => {
                                         
                                         
                                 }
-                                
-                                
                         }
-                        
                 }                
         };
 
@@ -175,59 +172,99 @@ const Cam: React.FC<CamProps> = (Props) => {
                                         let x = sender.pageX - img.offsetLeft;
                                         let y = sender.pageY - img.offsetTop;
                         
-                                        canvas.width = 50;
-                                        canvas.height = 50;
+                                        canvas.width = 200;
+                                        canvas.height = 200;
                         
                                         const ctx = canvas.getContext('2d');
                         
                                         if (ctx && img) {                              
                                                 ctx.drawImage(img, x-(canvas.width/2), y-(canvas.height/2), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                                                 const dataUrl = canvas.toDataURL("image/png");
-                                                // send image to server
-                                                axios.post(config.IA_API_TABLET_ANALYZE, {
-                                                        content: dataUrl
-                                                })
-                                                .then((res) => {
-                                                        let result = res?.data?.data as {
-                                                                certainty: number,
-                                                                detection: string,
-                                                                position: { 
-                                                                        bottomright: { x: number, y: number },
-                                                                        topleft: { x: number, y: number }
-                                                                }
-                                                        }[];
-
-                                                        setFishResult(result);
-                                                })
-                                                .catch((err) => {
-                                                        let fakeResult: {
-                                                                certainty: number,
-                                                                detection: string,
-                                                                position: { 
-                                                                        bottomright: { x: number, y: number },
-                                                                        topleft: { x: number, y: number }
-                                                                }
-                                                        }[] = [
-                                                                {
-                                                                        certainty: 0.6,
-                                                                        detection: 'FISH_1',
-                                                                        position: {
-                                                                                bottomright: { x: 0, y: 0 },
-                                                                                topleft: { x: 0, y: 0 }
+                                                const xMin = x-(canvas.width/2);
+                                                const xMax = xMin + canvas.width;
+                                                const yMin = y-(canvas.height/2);
+                                                const yMax = yMin + canvas.height;
+                                                
+                                                let result: {
+                                                        certainty: number,
+                                                        detection: string,
+                                                        position: { 
+                                                                bottomright: { x: number, y: number },
+                                                                topleft: { x: number, y: number }
+                                                        }
+                                                }[] = [];
+                                                detectionsArray.current.map(detected => {
+                                                        const xMinDetected = detected.x;
+                                                        const xMaxDetected = xMinDetected + detected.width;
+                                                        const yMinDetected = detected.y;
+                                                        const yMaxDetected = yMinDetected + detected.height;
+                                                        if((xMinDetected >= xMin && xMaxDetected <= xMax) &&
+                                                           (yMinDetected >= yMin && yMaxDetected <= yMax)) {                                                   
+                                                                result.push({ 
+                                                                        certainty: detected.percentage/100,
+                                                                        detection: detected.label,
+                                                                        position: { 
+                                                                                bottomright: { 
+                                                                                        x: 0,
+                                                                                        y: 0
+                                                                                },
+                                                                                topleft: { 
+                                                                                        x: 0,
+                                                                                        y: 0
+                                                                                }
                                                                         }
-                                                                },
-                                                                {
-                                                                        certainty: 0.6,
-                                                                        detection: 'FISH_2',
-                                                                        position: {
-                                                                                bottomright: { x: 0, y: 0 },
-                                                                                topleft: { x: 0, y: 0 }
-                                                                        }
-                                                                }
-                                                        ];
-
-                                                        setFishResult([]);
+                                                                });
+                                                        }
                                                 });
+
+                                                if(result.length) setFishResult(result);
+                                                else {
+                                                        // send image to server
+                                                        axios.post(config.IA_API_TABLET_ANALYZE, {
+                                                                content: dataUrl
+                                                        })
+                                                        .then((res) => {
+                                                                let result = res?.data?.data as {
+                                                                        certainty: number,
+                                                                        detection: string,
+                                                                        position: { 
+                                                                                bottomright: { x: number, y: number },
+                                                                                topleft: { x: number, y: number }
+                                                                        }
+                                                                }[];
+        
+                                                                setFishResult(result);
+                                                        })
+                                                        .catch((err) => {
+                                                                let fakeResult: {
+                                                                        certainty: number,
+                                                                        detection: string,
+                                                                        position: { 
+                                                                                bottomright: { x: number, y: number },
+                                                                                topleft: { x: number, y: number }
+                                                                        }
+                                                                }[] = [
+                                                                        {
+                                                                                certainty: 0.6,
+                                                                                detection: 'FISH_1',
+                                                                                position: {
+                                                                                        bottomright: { x: 0, y: 0 },
+                                                                                        topleft: { x: 0, y: 0 }
+                                                                                }
+                                                                        },
+                                                                        {
+                                                                                certainty: 0.6,
+                                                                                detection: 'FISH_2',
+                                                                                position: {
+                                                                                        bottomright: { x: 0, y: 0 },
+                                                                                        topleft: { x: 0, y: 0 }
+                                                                                }
+                                                                        }
+                                                                ];
+        
+                                                                setFishResult([]);
+                                                        });
+                                                }
                                         }     
                                 }                                
                         };
@@ -246,10 +283,11 @@ const Cam: React.FC<CamProps> = (Props) => {
                         </Grid>
 
                         <Grid item xs={10} sm ={10} md={10} lg={10} xl={10} id='result'>
-                                {hasSelected.current ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un poisson <TouchAppIcon/></i></h2>}
+                                {hasSelected.current ? <ResultTable fishResult={fishResult}/> : <h2><i>Selectionnez un spécimen <TouchAppIcon/></i></h2>}
                         </Grid>
 
-                        <Grid item xs={12}>                                
+                        <Grid item xs={12}>
+                                {/*{cameraChoice.toString()}*/}                            
                                 <video 
                                         crossOrigin="anonymous"
                                         src={cameraChoice.toString()}
