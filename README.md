@@ -2,6 +2,18 @@
 
 ## Utilisation de l'interface
 
+### **Première connexion à l'interface**
+
+Cette page est la page de connexion à l'interface d'administration.
+
+Lors de votre première connexion, un compte par défaut est déjà créé, le compte admin.  
+`identifiant: admin, mot de passe: admin`
+
+Le mot de passe de ce compte sera modifiable par la suite. (vivement conseillé)  
+Ce compte ne peut pas être supprimé, et ses droits ne peuvent pas être modifiés.
+
+![Login Page](.docs/Login_Page.png)
+
 ---
 
 ### **Interface des espèces**
