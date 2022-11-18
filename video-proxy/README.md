@@ -3,7 +3,7 @@
 ![](./img/in.png)
 ![](./img/out.png)
 ## Description
-Serveur local qui permet de transformer un **flux video RTSP** et de le diffuser en **flux video HTTP** avec **les autorisations CORS** necéssaires.
+Serveur local qui permet de transformer un **flux video RTSP** et de le diffuser en **flux video HTTP** avec **les autorisations CORS** nécessaires.
 
 ## Utilisation
 Commandes VLC :
