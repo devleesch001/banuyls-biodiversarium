@@ -11,3 +11,30 @@ services:
         #        - REACT_APP_API_URL=""
         ports:
             - "80:80"
+        networks:
+            - http-cors
+
+    http-cors:
+        build:
+            context: video-proxy/
+            target: banuyls-biodiversarium-video-proxy-signed
+        restart: always
+        networks:
+            - rtsp-to-http-network
+            - http-cors
+        ports:
+            - "8000:8000"
+
+    rtsp-to-http:
+        build:
+            context: video-proxy/
+            target: banuyls-biodiversarium-video-proxy-vlc
+        restart: always
+        networks:
+            - rtsp-to-http-network
+
+networks:
+    rtsp-to-http-network:
+        external: false
+    http-cors:
+        external: false
