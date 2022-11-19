@@ -75,14 +75,21 @@ services:
     http-cors:
         build:
             context: biodiversarium-bornfront/video-proxy/
-        restart: always
-        networks:
-            - video-network
-        environment:
-            - PORT=80
-            - URL=http://localhost:8080/stream.ogg
-        ports:
-            - "555:80"
+            target: banuyls-biodiversarium-video-proxy-signed
+            restart: always
+            networks:
+                - rtsp-to-http-network
+                - http-cors
+                ports:
+                    - "8000:8000"
+
+    rtsp-to-http:
+        build:
+            context: biodiversarium-bornfront/video-proxy/
+            target: banuyls-biodiversarium-video-proxy-vlc
+            restart: always
+            networks:
+                - rtsp-to-http-network
 
 networks:
     fish-hub-network:
@@ -101,6 +108,12 @@ networks:
         external: false
 
     video-network:
+        external: false
+
+    rtsp-to-http-network:
+        external: false
+
+    http-cors:
         external: false
 
     default:
