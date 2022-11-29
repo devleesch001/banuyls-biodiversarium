@@ -1,7 +1,22 @@
+# Project Banuyls
 
 ```bash
-git clone --recursive 
+git clone --recursive {url_of_projet}
 ```
+
+```
+docker-compose up -d
+```
+
+or
+
+```
+docker compose up -d
+```
+
+## Optinal
+
+> for ssl auto config
 
 run thgis command to init cerbot config
 
