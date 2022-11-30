@@ -6,3 +6,10 @@ services:
             - ./:/usr/src/app
         ports:
             - "80:80"
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                  count: 1
+                  capabilities: [gpu]
