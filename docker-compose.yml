@@ -61,7 +61,6 @@ services:
         ports:
             - "333:80"
         volumes:
-            - "./weights:/usr/src/app/weights"
             - "./fishDataset:/usr/src/app/fishDataset"
 
     born:
