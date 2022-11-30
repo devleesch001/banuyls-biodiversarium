@@ -1,0 +1,132 @@
+version: "2.5"
+
+services:
+    webserver:
+        image: nginx:stable-alpine
+        ports:
+            - "80:80"
+            - "443:443"
+        restart: always
+        volumes:
+            - ./nginx/conf/dev:/etc/nginx/conf.d/:ro
+            - ./certbot/www:/var/www/certbot/:ro
+            - ./certbot/conf/:/etc/nginx/ssl/:ro
+        depends_on:
+            - fish-hub
+            - back-fish
+            - ia
+            - born
+            - http-cors
+        networks:
+            - fish-hub-network
+            - back-fish-network
+            - analyze-fish-network
+            - born-network
+            - video-network
+
+    fish-hub:
+        build:
+            context: web-appli/
+            target: banuyls-biodiversarium-wep-appli-prod
+        restart: always
+        networks:
+            - fish-hub-network
+        environment:
+            - REACT_APP_API_URL=""
+        ports:
+            - "111:80"
+
+    back-fish:
+        build:
+            context: back-fish/
+            target: banuyls-biodiversarium-back-fish-prod
+        restart: always
+        networks:
+            - back-fish-network
+            - analyze-fish-back-network
+        ports:
+            - "222:80"
+        environment:
+            - IA_URL=http://ia/ia
+        volumes:
+            - "./database:/api/instance"
+
+    ia:
+        build:
+            context: analyze-fish/
+        restart: always
+        networks:
+            - analyze-fish-network
+            - analyze-fish-back-network
+        ports:
+            - "333:80"
+        volumes:
+            - "./weights:/usr/src/app/weights"
+            - "./fishDataset:/usr/src/app/fishDataset"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: 1
+                          capabilities: [gpu]
+
+    born:
+        build:
+            context: biodiversarium-bornfront/biodiversarium-bornfront/
+            target: banuyls-biodiversarium-born-dev
+        restart: always
+        networks:
+            - born-network
+        environment:
+            - PORT=80
+            - REACT_APP_API_URL=""
+        ports:
+            - "444:80"
+
+    http-cors:
+        build:
+            context: biodiversarium-bornfront/video-proxy/
+            target: banuyls-biodiversarium-video-proxy-signed
+        restart: always
+        networks:
+            - rtsp-to-http-network
+            - http-cors
+        ports:
+            - "8000:8000"
+
+    rtsp-to-http:
+        build:
+            context: biodiversarium-bornfront/video-proxy/
+            target: banuyls-biodiversarium-video-proxy-vlc
+        restart: always
+        networks:
+            - rtsp-to-http-network
+
+networks:
+    fish-hub-network:
+        external: false
+
+    back-fish-network:
+        external: false
+
+    analyze-fish-network:
+        external: false
+
+    analyze-fish-back-network:
+        external: false
+
+    born-network:
+        external: false
+
+    video-network:
+        external: false
+
+    rtsp-to-http-network:
+        external: false
+
+    http-cors:
+        external: false
+
+    default:
+        external: false

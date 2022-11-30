@@ -1,7 +1,10 @@
 .idea/
 .vscode/
 docker-compose.traefik.yml
-#certbot/
 
+#certbot/
 !certbot/conf/.gitkeep
 !certbot/www/.gitkeep
+
+database/
+fishDataset/
