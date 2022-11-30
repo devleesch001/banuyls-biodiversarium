@@ -48,6 +48,8 @@ services:
             - "222:80"
         environment:
             - IA_URL=http://ia/ia
+        volumes:
+            - "./database:/api/instance"
 
     ia:
         build:
@@ -58,6 +60,8 @@ services:
             - analyze-fish-back-network
         ports:
             - "333:80"
+        volumes:
+            - "./fishDataset:/usr/src/app/fishDataset"
 
     born:
         build:
