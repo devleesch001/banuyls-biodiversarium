@@ -1,0 +1,6 @@
+train: ./fishDataset/images/train
+val: ./fishDataset/images/valid
+test: ./fishDataset/images/test
+
+nc: 12
+names: ['Axinelle', 'Corb', 'Eponge pierre', 'Girelle royal', 'Gorgone blanche', 'Gorgone jaune', 'Mérou brun', 'Oblade', 'Raie pastenague', 'Sar tambour', 'Sar à tête noire', 'Triton']

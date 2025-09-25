@@ -1,0 +1,5 @@
+{
+    "weights":"fishDataset/best_ckpt.pt",
+    "labels":"fishDataset/data.yaml",
+    "img_size":416
+}
