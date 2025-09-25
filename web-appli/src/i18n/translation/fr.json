@@ -1,0 +1,37 @@
+{
+    "appbar": {
+        "camera": {
+            "active" : "Activer la camera"
+        }
+    },
+    "camera": {
+        "status" : {
+            "pending": "Veuillez activer la caméra",
+            "errored": "Votre appareil n'est pas compatible",
+            "disable": "La caméra est désactivée ! Veuillez autoriser la caméra"
+        },
+        "info" : {
+            "treatment": "Traitement en cours...",
+            "errored": "Le serveur n'as pas repondu"
+        }
+    },
+    "menu": {
+        "language" : "Langue",
+        "server_options": "Choix du server (dev)",
+        "about": "À propos de nous",
+        "languages": {
+            "choice": "Choisissez votre langue"
+        }
+    },
+    "fishInformation": {
+        "modal": {
+            "noInfo": "Aucune information trouvée sur le poisson",
+            "noDescription": "Aucun description"
+        }
+    },
+    "about": {
+        "text": {
+            "main": "IMERIR bgaxe"
+        }
+    }
+}

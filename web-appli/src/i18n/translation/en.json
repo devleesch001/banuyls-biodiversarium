@@ -1,0 +1,37 @@
+{
+    "appbar": {
+        "camera": {
+            "active" : "Activate the camera"
+        }
+    },
+    "camera": {
+        "status" : {
+            "pending": "Please activate the camera",
+            "errored": "Your device is not compatible",
+            "disable": "The camera is off! Please allow camera"
+        },
+        "info" : {
+            "treatment": "Ongoing treatment...",
+            "errored": "The server did not respond"
+        }
+    },
+    "menu": {
+        "about": "About Us",
+        "server_options": "Server Choice (dev)",
+        "language" : "Language",
+        "languages": {
+            "choice": "Choose your language"
+        }
+    },
+    "fishInformation": {
+        "modal": {
+            "noInfo": "No information found on the fish",
+            "noDescription": "No description"
+        }
+    },
+    "about": {
+        "text": {
+            "main": "IMERIR bgaxe"
+        }
+    }
+}
